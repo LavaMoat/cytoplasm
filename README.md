@@ -1,12 +1,12 @@
 ### other implementations
 
-repo  | n-sides
+repo  | n-sides  | audit
 ------------- | -------------
-[es-membrane][es-membrane]  | ✓
-[@caridy/sjs][@caridy/sjs]  | x
-[observable-membrane][observable-membrane]  | ?
-[fast-membrane][fast-membrane]  | ?
-[membrane-traits][membrane-traits]  | ?
+[es-membrane][es-membrane]  | ✓ | x
+[@caridy/sjs][@caridy/sjs]  | x | x
+[observable-membrane][observable-membrane]  | x | x
+[fast-membrane][fast-membrane]  | x | x
+[membrane-traits][membrane-traits]  | x | x
 
 
 
