@@ -1,3 +1,5 @@
+// theres some things we may need to enforce differently when in and out of strict mode
+// e.g. fn.arguments
 "use strict"
 
 class ObjectGraph {
@@ -105,18 +107,15 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
   const respectfulProxyHandler = Object.assign({}, handlerWithDefaults)
   // add respect
   respectfulProxyHandler.getOwnPropertyDescriptor = (_, key) => {
+    // ensure propDesc matches proxy target's non-configurable property
     const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(_, key)
-    if (propDesc) {
-      // enforce proxy invariant
-      // ensure proxy target has non-configurable property
-      if (!propDesc.configurable) {
-        const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(proxyTarget, key)
-        const proxyTargetPropIsConfigurable = (!proxyTargetPropDesc || proxyTargetPropDesc.configurable)
-        // console.warn('@@ getOwnPropertyDescriptor - non configurable', String(key), !!proxyTargetPropIsConfigurable)
-        // if proxy target is configurable (and real target is not) update the proxy target to ensure the invariant holds
-        if (proxyTargetPropIsConfigurable) {
-          Reflect.defineProperty(proxyTarget, key, propDesc)
-        }
+    if (propDesc && !propDesc.configurable) {
+      const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(proxyTarget, key)
+      const proxyTargetPropIsConfigurable = (!proxyTargetPropDesc || proxyTargetPropDesc.configurable)
+      // console.warn('@@ getOwnPropertyDescriptor - non configurable', String(key), !!proxyTargetPropIsConfigurable)
+      // if proxy target is configurable (and real target is not) update the proxy target to ensure the invariant holds
+      if (proxyTargetPropIsConfigurable) {
+        Reflect.defineProperty(proxyTarget, key, propDesc)
       }
     }
     return propDesc
