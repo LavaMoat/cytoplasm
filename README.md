@@ -1,13 +1,12 @@
 ### other implementations
 
 repo  | n-sides  | audit
-------------- | -------------
+---|---|---
 [es-membrane][es-membrane]  | ✓ | x
 [@caridy/sjs][@caridy/sjs]  | x | x
 [observable-membrane][observable-membrane]  | x | x
 [fast-membrane][fast-membrane]  | x | x
 [membrane-traits][membrane-traits]  | x | x
-
 
 
 [es-membrane]: https://github.com/ajvincent/es-membrane "es-membrane"
