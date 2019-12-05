@@ -1,4 +1,4 @@
-#  :microscope: cytoplasm 🦠
+# 🦠 cytoplasm 🔬
 
 a javascript [membrane](https://tvcutsem.github.io/membranes) implementation
 
