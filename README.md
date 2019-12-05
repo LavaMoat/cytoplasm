@@ -1,7 +1,15 @@
-### other implementations
+# cytoplasm
+
+a javascript [membrane](https://tvcutsem.github.io/membranes) implementation
+
+**status: wip, do not use, has not been audited, etc**
+
+
+### comparison to other implementations
 
 repo  | n-sides  | audit
 ---|---|---
+cytoplasm  | ✓ | x
 [es-membrane][es-membrane]  | ✓ | x
 [@caridy/sjs][@caridy/sjs]  | x | x
 [observable-membrane][observable-membrane]  | x | x
