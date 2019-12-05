@@ -5,15 +5,6 @@ class ObjectGraph {
   }
 }
 
-/*
-
-ProxyHandler
-  get
-    out: key
-    out: receiver
-
-*/
-
 class Membrane {
   constructor () {
     this.primordials = [Object, Object.prototype]
@@ -62,34 +53,23 @@ class Membrane {
       return outGraph.rawToBridged.get(rawRef)
     }
     // setup bridge
-    // TODO use replacement proxyTarget for flexible distortions less restrained by "Proxy invariant"
-    // e.g. hide otherwise non-configurable properties
-    // const proxyTarget = typeof rawRef === 'function' ? function(){} : {}
-    const proxyTarget = rawRef
+    // TODO enforce proxy invariants
+    const proxyTarget = getProxyTargetForValue(rawRef)
     const bridgedRef = new Proxy(proxyTarget, {
-      get: (_, outKey, outReceiver) => {
-        // for debugging
-        if (outKey === '_isProxy') return true
-        // console.log('membrane.bridge - get!')
-        // outKey, outReceiver are "raw out"
-        const wrappedKey = this.bridge(outKey, outGraph, inGraph)
-        const wrappedReceiver = this.bridge(outReceiver, outGraph, inGraph)
-        // value is "raw in"
-        const value = Reflect.get(rawRef, wrappedKey, wrappedReceiver)
-        // value is bridged to "wrapped in"
-        return this.bridge(value, inGraph, outGraph)
-      },
-      apply: (_, outThis, outArgs) => {
-        // console.log('membrane.bridge - apply! bridging this+args')
-        // outThis, outArgs are "raw out"
-        const wrappedThis = this.bridge(outThis, outGraph, inGraph)
-        const wrappedArgs = Array.prototype.map.call(outArgs, (arg) => this.bridge(arg, outGraph, inGraph))
-        // value is "raw in"
-        const value = Reflect.apply(rawRef, wrappedThis, wrappedArgs)
-        // value is bridged to "wrapped in"
-        // console.log('membrane.bridge - apply - before bridge value')
-        return this.bridge(value, inGraph, outGraph)
-      },
+      getPrototypeOf: createHandlerFn(Reflect.getPrototypeOf, rawRef, inGraph, outGraph).bind(this),
+      setPrototypeOf: createHandlerFn(Reflect.setPrototypeOf, rawRef, inGraph, outGraph).bind(this),
+      isExtensible: createHandlerFn(Reflect.isExtensible, rawRef, inGraph, outGraph).bind(this),
+      preventExtensions: createHandlerFn(Reflect.preventExtensions, rawRef, inGraph, outGraph).bind(this),
+      getOwnPropertyDescriptor: createHandlerFn(Reflect.getOwnPropertyDescriptor, rawRef, inGraph, outGraph).bind(this),
+      defineProperty: createHandlerFn(Reflect.defineProperty, rawRef, inGraph, outGraph).bind(this),
+      has: createHandlerFn(Reflect.has, rawRef, inGraph, outGraph).bind(this),
+      get: createHandlerFn(Reflect.get, rawRef, inGraph, outGraph).bind(this),
+      set: createHandlerFn(Reflect.set, rawRef, inGraph, outGraph).bind(this),
+      deleteProperty: createHandlerFn(Reflect.deleteProperty, rawRef, inGraph, outGraph).bind(this),
+      ownKeys: createHandlerFn(Reflect.ownKeys, rawRef, inGraph, outGraph).bind(this),
+      apply: createHandlerFn(Reflect.apply, rawRef, inGraph, outGraph).bind(this),
+      construct: createHandlerFn(Reflect.construct, rawRef, inGraph, outGraph).bind(this),
+
     })
     // cache both ways
     outGraph.rawToBridged.set(rawRef, bridgedRef)
@@ -107,6 +87,44 @@ class Membrane {
     if (this.primordials.includes(value)) return true
     // otherwise we cant skip it
     return false
+  }
+}
+
+function createHandlerFn (reflectFn, rawRef, inGraph, outGraph) {
+  return function (_, ...outArgs) {
+    const wrappedArgs = Array.prototype.map.call(outArgs, (arg) => {
+      return this.bridge(arg, outGraph, inGraph)
+    })
+    let value, err
+    try {
+      value = reflectFn(rawRef, ...wrappedArgs)
+    } catch (_err) {
+      err = _err
+    }
+    if (err !== undefined) {
+      const wrappedErr = this.bridge(err, inGraph, outGraph)
+      throw wrappedErr
+    } else {
+      return this.bridge(value, inGraph, outGraph)
+    }
+  }
+}
+
+// use replacement proxyTarget for flexible distortions less restrained by "Proxy invariant"
+// e.g. hide otherwise non-configurable properties
+function getProxyTargetForValue (value) {
+  if (typeof value === 'function') {
+    if (value.prototype) {
+      return function(){}
+    } else {
+      return () => {}
+    }
+  } else {
+    if (Array.isArray(value)) {
+      return []
+    } else {
+      return {}
+    }
   }
 }
 

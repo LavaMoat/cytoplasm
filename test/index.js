@@ -1,7 +1,7 @@
 const test = require('tape')
 const { Membrane } = require('../src/index')
 
-test('basic bridge', (t) => {
+test('basic - bridge', (t) => {
 
   const membrane = new Membrane()
 
@@ -25,10 +25,11 @@ test('basic bridge', (t) => {
   t.deepEqual(bridgedA.object, objA.object, 'object deep equals')
 
   t.end()
+
 })
 
 
-test('basic 3-side', (t) => {
+test('basic - 3-side', (t) => {
 
   const membrane = new Membrane()
 
@@ -75,4 +76,41 @@ test('basic 3-side', (t) => {
   t.ok(objC.testRemote(), 'obj-c test remote')
 
   t.end()
+
+})
+
+test('getter - throw custom Error', (t) => {
+
+  const membrane = new Membrane()
+
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+
+  class CustomError extends Error {}
+
+  const objA = {
+    get a () {
+      throw new CustomError('custom getter error')
+    }
+  }
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+  const wrappedError = membrane.bridge(CustomError, graphA, graphB)
+  const wrappedErrorPrototype = membrane.bridge(CustomError.prototype, graphA, graphB)
+  t.equal(wrappedErrorPrototype, wrappedError.prototype, 'custom error dot-prototype is proxied correctly')
+
+  try {
+    // trigger getter err
+    wrappedA.a
+    // should never reach here
+    t.fail('did not throw error')
+  } catch (err) {
+    t.notEqual(err.constructor, CustomError, 'custom error constructor is not raw')
+    t.equal(err.constructor, wrappedError, 'custom error constructor is proxied')
+    t.notEqual(Reflect.getPrototypeOf(err), CustomError.prototype, 'custom error prototype is not raw')
+    t.equal(Reflect.getPrototypeOf(err), wrappedErrorPrototype, 'custom error prototype is proxied errors dot-proto')
+  }
+
+  t.end()
+
 })
