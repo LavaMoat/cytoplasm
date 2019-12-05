@@ -1,3 +1,5 @@
+"use strict"
+
 class ObjectGraph {
   constructor ({ label }) {
     this.rawToBridged = new WeakMap()
@@ -53,24 +55,10 @@ class Membrane {
       return outGraph.rawToBridged.get(rawRef)
     }
     // setup bridge
-    // TODO enforce proxy invariants
     const proxyTarget = getProxyTargetForValue(rawRef)
-    const bridgedRef = new Proxy(proxyTarget, {
-      getPrototypeOf: createHandlerFn(Reflect.getPrototypeOf, rawRef, inGraph, outGraph).bind(this),
-      setPrototypeOf: createHandlerFn(Reflect.setPrototypeOf, rawRef, inGraph, outGraph).bind(this),
-      isExtensible: createHandlerFn(Reflect.isExtensible, rawRef, inGraph, outGraph).bind(this),
-      preventExtensions: createHandlerFn(Reflect.preventExtensions, rawRef, inGraph, outGraph).bind(this),
-      getOwnPropertyDescriptor: createHandlerFn(Reflect.getOwnPropertyDescriptor, rawRef, inGraph, outGraph).bind(this),
-      defineProperty: createHandlerFn(Reflect.defineProperty, rawRef, inGraph, outGraph).bind(this),
-      has: createHandlerFn(Reflect.has, rawRef, inGraph, outGraph).bind(this),
-      get: createHandlerFn(Reflect.get, rawRef, inGraph, outGraph).bind(this),
-      set: createHandlerFn(Reflect.set, rawRef, inGraph, outGraph).bind(this),
-      deleteProperty: createHandlerFn(Reflect.deleteProperty, rawRef, inGraph, outGraph).bind(this),
-      ownKeys: createHandlerFn(Reflect.ownKeys, rawRef, inGraph, outGraph).bind(this),
-      apply: createHandlerFn(Reflect.apply, rawRef, inGraph, outGraph).bind(this),
-      construct: createHandlerFn(Reflect.construct, rawRef, inGraph, outGraph).bind(this),
-
-    })
+    const membraneProxyHandler = createMembraneProxyHandler(this, rawRef, inGraph, outGraph)
+    const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
+    const bridgedRef = new Proxy(proxyTarget, proxyHandler)
     // cache both ways
     outGraph.rawToBridged.set(rawRef, bridgedRef)
     this.bridgedToRaw.set(bridgedRef, rawRef)
@@ -88,6 +76,53 @@ class Membrane {
     // otherwise we cant skip it
     return false
   }
+}
+
+function createMembraneProxyHandler (thisRef, rawRef, inGraph, outGraph) {
+  const proxyHandler = {
+    getPrototypeOf: createHandlerFn(Reflect.getPrototypeOf, rawRef, inGraph, outGraph).bind(thisRef),
+    setPrototypeOf: createHandlerFn(Reflect.setPrototypeOf, rawRef, inGraph, outGraph).bind(thisRef),
+    isExtensible: createHandlerFn(Reflect.isExtensible, rawRef, inGraph, outGraph).bind(thisRef),
+    preventExtensions: createHandlerFn(Reflect.preventExtensions, rawRef, inGraph, outGraph).bind(thisRef),
+    getOwnPropertyDescriptor: createHandlerFn(Reflect.getOwnPropertyDescriptor, rawRef, inGraph, outGraph).bind(thisRef),
+    defineProperty: createHandlerFn(Reflect.defineProperty, rawRef, inGraph, outGraph).bind(thisRef),
+    has: createHandlerFn(Reflect.has, rawRef, inGraph, outGraph).bind(thisRef),
+    get: createHandlerFn(Reflect.get, rawRef, inGraph, outGraph).bind(thisRef),
+    set: createHandlerFn(Reflect.set, rawRef, inGraph, outGraph).bind(thisRef),
+    deleteProperty: createHandlerFn(Reflect.deleteProperty, rawRef, inGraph, outGraph).bind(thisRef),
+    ownKeys: createHandlerFn(Reflect.ownKeys, rawRef, inGraph, outGraph).bind(thisRef),
+    apply: createHandlerFn(Reflect.apply, rawRef, inGraph, outGraph).bind(thisRef),
+    construct: createHandlerFn(Reflect.construct, rawRef, inGraph, outGraph).bind(thisRef),
+  }
+  return proxyHandler
+}
+
+// TODO ensure we're enforcing all proxy invariants
+function respectProxyInvariants (proxyTarget, rawProxyHandler) {
+  // the defaults arent needed for the membraneProxyHandler,
+  // but might be for an imcomplete proxy handler
+  const handlerWithDefaults = Object.assign({}, Reflect, rawProxyHandler)
+  const respectfulProxyHandler = Object.assign({}, handlerWithDefaults)
+  // add respect
+  respectfulProxyHandler.getOwnPropertyDescriptor = (_, key) => {
+    const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(_, key)
+    if (propDesc) {
+      // enforce proxy invariant
+      // ensure proxy target has non-configurable property
+      if (!propDesc.configurable) {
+        const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(proxyTarget, key)
+        const proxyTargetPropIsConfigurable = (!proxyTargetPropDesc || proxyTargetPropDesc.configurable)
+        // console.warn('@@ getOwnPropertyDescriptor - non configurable', String(key), !!proxyTargetPropIsConfigurable)
+        // if proxy target is configurable (and real target is not) update the proxy target to ensure the invariant holds
+        if (proxyTargetPropIsConfigurable) {
+          Reflect.defineProperty(proxyTarget, key, propDesc)
+        }
+      }
+    }
+    return propDesc
+  }
+  // return modified handler
+  return respectfulProxyHandler
 }
 
 function createHandlerFn (reflectFn, rawRef, inGraph, outGraph) {
