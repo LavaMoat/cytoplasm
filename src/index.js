@@ -3,9 +3,10 @@
 "use strict"
 
 class ObjectGraph {
-  constructor ({ label }) {
+  constructor ({ label, handler }) {
     this.rawToBridged = new WeakMap()
     this.label = label
+    this.handler = handler || Reflect
   }
 }
 
@@ -15,8 +16,8 @@ class Membrane {
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
   }
-  makeObjectGraph ({ label }) {
-    return new ObjectGraph({ label })
+  makeObjectGraph ({ label, handler }) {
+    return new ObjectGraph({ label, handler })
   }
   // if rawObj is not part of inGraph, should we explode?
   bridge (inRef, inGraph, outGraph) {
@@ -58,7 +59,8 @@ class Membrane {
     }
     // setup bridge
     const proxyTarget = getProxyTargetForValue(rawRef)
-    const membraneProxyHandler = createMembraneProxyHandler(this, rawRef, inGraph, outGraph)
+    const distortionHandler = inGraph.handler
+    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, inGraph, outGraph, this.bridge.bind(this))
     const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
     const bridgedRef = new Proxy(proxyTarget, proxyHandler)
     // cache both ways
@@ -80,21 +82,32 @@ class Membrane {
   }
 }
 
-function createMembraneProxyHandler (thisRef, rawRef, inGraph, outGraph) {
+// handler stack
+
+// ProxyInvariantHandler calls next() <-- needs to have final say
+//   MembraneHandler calls next() <-- needs to see distortion result
+//     LocalWritesHandler sets behavior
+
+
+// currently creating handler per-object
+// perf: create only once?
+//   better to create one each time with rawRef bound?
+//   or find a way to map target to rawRef
+function createMembraneProxyHandler (prevProxyHandler, rawRef, inGraph, outGraph, bridge) {
   const proxyHandler = {
-    getPrototypeOf: createHandlerFn(Reflect.getPrototypeOf, rawRef, inGraph, outGraph).bind(thisRef),
-    setPrototypeOf: createHandlerFn(Reflect.setPrototypeOf, rawRef, inGraph, outGraph).bind(thisRef),
-    isExtensible: createHandlerFn(Reflect.isExtensible, rawRef, inGraph, outGraph).bind(thisRef),
-    preventExtensions: createHandlerFn(Reflect.preventExtensions, rawRef, inGraph, outGraph).bind(thisRef),
-    getOwnPropertyDescriptor: createHandlerFn(Reflect.getOwnPropertyDescriptor, rawRef, inGraph, outGraph).bind(thisRef),
-    defineProperty: createHandlerFn(Reflect.defineProperty, rawRef, inGraph, outGraph).bind(thisRef),
-    has: createHandlerFn(Reflect.has, rawRef, inGraph, outGraph).bind(thisRef),
-    get: createHandlerFn(Reflect.get, rawRef, inGraph, outGraph).bind(thisRef),
-    set: createHandlerFn(Reflect.set, rawRef, inGraph, outGraph).bind(thisRef),
-    deleteProperty: createHandlerFn(Reflect.deleteProperty, rawRef, inGraph, outGraph).bind(thisRef),
-    ownKeys: createHandlerFn(Reflect.ownKeys, rawRef, inGraph, outGraph).bind(thisRef),
-    apply: createHandlerFn(Reflect.apply, rawRef, inGraph, outGraph).bind(thisRef),
-    construct: createHandlerFn(Reflect.construct, rawRef, inGraph, outGraph).bind(thisRef),
+    getPrototypeOf: createHandlerFn(prevProxyHandler.getPrototypeOf, rawRef, inGraph, outGraph, bridge),
+    setPrototypeOf: createHandlerFn(prevProxyHandler.setPrototypeOf, rawRef, inGraph, outGraph, bridge),
+    isExtensible: createHandlerFn(prevProxyHandler.isExtensible, rawRef, inGraph, outGraph, bridge),
+    preventExtensions: createHandlerFn(prevProxyHandler.preventExtensions, rawRef, inGraph, outGraph, bridge),
+    getOwnPropertyDescriptor: createHandlerFn(prevProxyHandler.getOwnPropertyDescriptor, rawRef, inGraph, outGraph, bridge),
+    defineProperty: createHandlerFn(prevProxyHandler.defineProperty, rawRef, inGraph, outGraph, bridge),
+    has: createHandlerFn(prevProxyHandler.has, rawRef, inGraph, outGraph, bridge),
+    get: createHandlerFn(prevProxyHandler.get, rawRef, inGraph, outGraph, bridge),
+    set: createHandlerFn(prevProxyHandler.set, rawRef, inGraph, outGraph, bridge),
+    deleteProperty: createHandlerFn(prevProxyHandler.deleteProperty, rawRef, inGraph, outGraph, bridge),
+    ownKeys: createHandlerFn(prevProxyHandler.ownKeys, rawRef, inGraph, outGraph, bridge),
+    apply: createHandlerFn(prevProxyHandler.apply, rawRef, inGraph, outGraph, bridge),
+    construct: createHandlerFn(prevProxyHandler.construct, rawRef, inGraph, outGraph, bridge),
   }
   return proxyHandler
 }
@@ -124,22 +137,23 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
   return respectfulProxyHandler
 }
 
-function createHandlerFn (reflectFn, rawRef, inGraph, outGraph) {
+function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
   return function (_, ...outArgs) {
     const wrappedArgs = Array.prototype.map.call(outArgs, (arg) => {
-      return this.bridge(arg, outGraph, inGraph)
+      return bridge(arg, outGraph, inGraph)
     })
     let value, err
     try {
-      value = reflectFn(rawRef, ...wrappedArgs)
+      // we also provide the outArgs, non-standard
+      value = reflectFn(rawRef, ...wrappedArgs, ...outArgs)
     } catch (_err) {
       err = _err
     }
     if (err !== undefined) {
-      const wrappedErr = this.bridge(err, inGraph, outGraph)
+      const wrappedErr = bridge(err, inGraph, outGraph)
       throw wrappedErr
     } else {
-      return this.bridge(value, inGraph, outGraph)
+      return bridge(value, inGraph, outGraph)
     }
   }
 }
