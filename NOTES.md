@@ -1,5 +1,20 @@
 NOTES
 
+kowtow thoughts
+- Shadow-on-write protections require three unique membrane spaces
+  1. Original
+  2. Shadow-layer
+  3. Consumer
+- layers 1+2 must be seperated to gurantee seperation of graphs
+- layers 2+3 must be seperated
+  - so that old
+  - closure state can be directly set on the inputs?
+
+
+a new hope
+  - cross-package interaction should be mediated by read-only membrane spaces
+
+
 happy things
   - solves the cache/no-cache-explosion issue
     - by preventing mutations on original (except closure state)
