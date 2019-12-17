@@ -4,5 +4,11 @@
   },
   "devDependencies": {
     "tape": "^4.11.0"
-  }
+  },
+  "name": "cytoplasm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:kumavis/cytoplasm.git",
+  "author": "kumavis <aaron@kumavis.me>",
+  "license": "MIT"
 }
