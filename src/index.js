@@ -3,10 +3,22 @@
 "use strict"
 
 class ObjectGraph {
-  constructor ({ label, handler }) {
+  constructor ({ label, createHandler }) {
     this.rawToBridged = new WeakMap()
+    this.handlerForRef = new WeakMap()
     this.label = label
-    this.handler = handler || Reflect
+    this.createHandler = createHandler || (() => Reflect)
+  }
+
+  getHandlerForRef (rawRef) {
+    if (this.handlerForRef.has(rawRef)) {
+      return this.handlerForRef.get(rawRef)
+    }
+    const handler = this.createHandler({
+      setHandlerForRef: (ref, newHandler) => this.handlerForRef.set(ref, newHandler)
+    })
+    this.handlerForRef.set(rawRef, handler)
+    return handler
   }
 }
 
@@ -16,8 +28,8 @@ class Membrane {
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
   }
-  makeObjectGraph ({ label, handler }) {
-    return new ObjectGraph({ label, handler })
+  makeObjectGraph ({ label, createHandler }) {
+    return new ObjectGraph({ label, createHandler })
   }
   // if rawObj is not part of inGraph, should we explode?
   bridge (inRef, inGraph, outGraph) {
@@ -59,7 +71,7 @@ class Membrane {
     }
 
     const proxyTarget = getProxyTargetForValue(rawRef)
-    const distortionHandler = inGraph.handler
+    const distortionHandler = inGraph.getHandlerForRef(rawRef)
     const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, inGraph, outGraph, this.bridge.bind(this))
     const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
     const bridgedRef = new Proxy(proxyTarget, proxyHandler)
@@ -72,6 +84,7 @@ class Membrane {
     // all done
     return bridgedRef
   }
+
   shouldSkipBridge (value) {
     // skip if a simple value
     if (Object(value) !== value) return true

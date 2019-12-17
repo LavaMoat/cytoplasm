@@ -1,11 +1,10 @@
 "use strict"
 
 const { Membrane } = require('../src/index')
-const createReadOnlyDistortion = require('../src/distortions/readOnly')
+const createHandler = require('../src/distortions/readOnly')
 
 const membrane = new Membrane()
-const readOnlyDistortion = createReadOnlyDistortion()
-const graphA = membrane.makeObjectGraph({ label: 'a', handler: readOnlyDistortion })
+const graphA = membrane.makeObjectGraph({ label: 'a', createHandler })
 const graphB = membrane.makeObjectGraph({ label: 'b' })
 
 const objA = {
@@ -23,3 +22,15 @@ try {
 } catch (err) {
   console.log('*Correctly* encountered error while trying to update value:', err)
 }
+
+
+const classA = class A {
+  value = 1
+}
+
+const ReadOnlyClassA = membrane.bridge(classA, graphA, graphB)
+const a = new ReadOnlyClassA()
+
+console.log('a.value', a.value)
+a.value = 2
+console.log('a.value', a.value)
