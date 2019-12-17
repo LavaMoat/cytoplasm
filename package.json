@@ -6,7 +6,7 @@
     "tape": "^4.11.0"
   },
   "name": "cytoplasm",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "main": "src/index.js",
   "repository": "git@github.com:kumavis/cytoplasm.git",
   "author": "kumavis <aaron@kumavis.me>",
