@@ -57,7 +57,7 @@ class Membrane {
       // console.log(`membrane.bridge cache hit in:${inGraph.label} -> out:${outGraph.label}`)
       return outGraph.rawToBridged.get(rawRef)
     }
-    // setup bridge
+
     const proxyTarget = getProxyTargetForValue(rawRef)
     const distortionHandler = inGraph.handler
     const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, inGraph, outGraph, this.bridge.bind(this))
@@ -139,19 +139,19 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
 
 function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
   return function (_, ...outArgs) {
-    const wrappedArgs = Array.prototype.map.call(outArgs, (arg) => {
+    const inArgs = Array.prototype.map.call(outArgs, (arg) => {
       return bridge(arg, outGraph, inGraph)
     })
-    let value, err
+    let value, inErr
     try {
       // we also provide the outArgs, non-standard
-      value = reflectFn(rawRef, ...wrappedArgs, ...outArgs)
-    } catch (_err) {
-      err = _err
+      value = reflectFn(rawRef, ...inArgs, ...outArgs)
+    } catch (err) {
+      inErr = err
     }
-    if (err !== undefined) {
-      const wrappedErr = bridge(err, inGraph, outGraph)
-      throw wrappedErr
+    if (inErr !== undefined) {
+      const outErr = bridge(inErr, inGraph, outGraph)
+      throw outErr
     } else {
       return bridge(value, inGraph, outGraph)
     }
