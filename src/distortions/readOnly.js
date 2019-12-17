@@ -2,9 +2,7 @@ module.exports = createDistortion
 
 // still allows functions that cause side effects
 function createDistortion ({ setHandlerForRef }) {
-  // clone Reflect for base handler
-  const baseHandler = Object.defineProperties({}, Object.getOwnPropertyDescriptors(Reflect))
-  return Object.assign(baseHandler, {
+  return {
     // prevent direct mutability
     setPrototypeOf: () => false,
     preventExtensions: () => false,
@@ -20,5 +18,13 @@ function createDistortion ({ setHandlerForRef }) {
       // return constructed child
       return result
     },
-  })
+    // default behavior
+    apply: Reflect.apply,
+    get: Reflect.get,
+    getOwnPropertyDescriptor: Reflect.getOwnPropertyDescriptor,
+    getPrototypeOf: Reflect.getPrototypeOf,
+    has: Reflect.has,
+    isExtensible: Reflect.isExtensible,
+    ownKeys: Reflect.ownKeys,
+  }
 }
