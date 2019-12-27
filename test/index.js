@@ -1,5 +1,8 @@
+'use strict'
+
 const test = require('tape')
 const { Membrane } = require('../src/index')
+const createReadOnlyDistortion = require('../src/distortions/readOnly')
 
 test('basic - bridge', (t) => {
 
@@ -494,7 +497,7 @@ test('kowtow - traps - for in', (t) => {
   const { Buffer } = require('buffer')
   const Copy = createCopyFactory()(Buffer)
 
-  for (key in Copy) {
+  for (let key in Copy) {
     t.ok(key)
   }
 
@@ -668,3 +671,57 @@ test('kowtow - class - class syntax subclass readme example', (t) => {
 
   t.end()
 })
+
+test('Types - typedArray', (t) => {
+  const membrane = new Membrane()
+  
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  
+  const objA = new Uint8Array([1, 2, 3])   
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+
+  t.equal(wrappedA.length, objA.length)
+  t.end()
+})
+
+test('Types - typedArray subclass', (t) => {
+  const membrane = new Membrane()
+  
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphC = membrane.makeObjectGraph({ label: 'c' })
+  
+  
+  const objA = new Uint8Array([1, 2, 3])   
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+  const wrappedB = membrane.bridge(wrappedA, graphB, graphC)
+
+  t.equal(wrappedB.length, objA.length)
+  t.end()
+})
+
+test('ProxyHandler - set', (t) => {
+  const membrane = new Membrane()
+
+  const graphA = membrane.makeObjectGraph({ label: 'a', createHandler: createReadOnlyDistortion })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+
+  const objA = {a: 'b'}
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+  const objB = Object.create(wrappedA)
+
+  let error  
+
+  try {
+    objB.a = 2
+  } catch(_error) {
+    error = _error
+  }
+
+  t.notOk(error)
+  t.end()
+})
+

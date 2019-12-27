@@ -7,7 +7,15 @@ function createDistortion ({ setHandlerForRef }) {
     setPrototypeOf: () => false,
     preventExtensions: () => false,
     defineProperty: () => false,
-    set: () => false,
+    set: (target, key, value, receiver) => {
+      //Override mistake workaround
+      if (target === receiver) {
+        return false
+      }
+
+      //Indirect set, redirect to a defineProperty
+      return Reflect.defineProperty(receiver, key, {value, enumerable: true, writable: true, configurable: true})
+    },
     deleteProperty: () => false,
     // special case: instantiated children should be mutable
     construct: (...args) => {
