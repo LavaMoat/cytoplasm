@@ -152,13 +152,10 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
 
 function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
   return function (_, ...outArgs) {
-    const inArgs = Array.prototype.map.call(outArgs, (arg) => {
-      return bridge(arg, outGraph, inGraph)
-    })
+    const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
     let value, inErr
     try {
-      // we also provide the outArgs, non-standard
-      value = reflectFn(rawRef, ...inArgs, ...outArgs)
+      value = reflectFn(rawRef, ...inArgs)
     } catch (err) {
       inErr = err
     }
@@ -189,4 +186,4 @@ function getProxyTargetForValue (value) {
   }
 }
 
-module.exports = { Membrane }
+module.exports = { Membrane, ObjectGraph }
