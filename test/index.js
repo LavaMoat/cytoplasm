@@ -668,3 +668,35 @@ test('kowtow - class - class syntax subclass readme example', (t) => {
 
   t.end()
 })
+
+test('Types - typedArray', (t) => {
+  const membrane = new Membrane()
+  
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  
+  const objA = new Uint8Array([1, 2, 3])   
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+
+  t.equal(wrappedA.length, objA.length)
+  t.end()
+})
+
+test('Types - typedArray subclass', (t) => {
+  const membrane = new Membrane()
+  
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphC = membrane.makeObjectGraph({ label: 'c' })
+  
+  
+  const objA = new Uint8Array([1, 2, 3])   
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+  const wrappedB = membrane.bridge(wrappedA, graphB, graphC)
+
+  t.equal(wrappedB.length, objA.length)
+  t.end()
+})
+

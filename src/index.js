@@ -70,9 +70,10 @@ class Membrane {
       return outGraph.rawToBridged.get(rawRef)
     }
 
+    const originGraph = this.rawToOrigin.get(rawRef)
     const proxyTarget = getProxyTargetForValue(rawRef)
-    const distortionHandler = inGraph.getHandlerForRef(rawRef)
-    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, inGraph, outGraph, this.bridge.bind(this))
+    const distortionHandler = originGraph.getHandlerForRef(rawRef)
+    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, originGraph, outGraph, this.bridge.bind(this))
     const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
     const bridgedRef = new Proxy(proxyTarget, proxyHandler)
     // cache both ways
