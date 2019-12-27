@@ -70,9 +70,10 @@ class Membrane {
       return outGraph.rawToBridged.get(rawRef)
     }
 
+    const originGraph = this.rawToOrigin.get(rawRef)
     const proxyTarget = getProxyTargetForValue(rawRef)
-    const distortionHandler = inGraph.getHandlerForRef(rawRef)
-    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, inGraph, outGraph, this.bridge.bind(this))
+    const distortionHandler = originGraph.getHandlerForRef(rawRef)
+    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, originGraph, outGraph, this.bridge.bind(this))
     const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
     const bridgedRef = new Proxy(proxyTarget, proxyHandler)
     // cache both ways
@@ -152,13 +153,10 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
 
 function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
   return function (_, ...outArgs) {
-    const inArgs = Array.prototype.map.call(outArgs, (arg) => {
-      return bridge(arg, outGraph, inGraph)
-    })
+    const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
     let value, inErr
     try {
-      // we also provide the outArgs, non-standard
-      value = reflectFn(rawRef, ...inArgs, ...outArgs)
+      value = reflectFn(rawRef, ...inArgs)
     } catch (err) {
       inErr = err
     }
@@ -189,4 +187,4 @@ function getProxyTargetForValue (value) {
   }
 }
 
-module.exports = { Membrane }
+module.exports = { Membrane, ObjectGraph }
