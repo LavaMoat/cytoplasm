@@ -1,5 +1,9 @@
 NOTES
 
+etienne qs
+- bridge is recursive
+  - debugging (eg with console logs) can induce inf loops
+
 kowtow thoughts
 - Shadow-on-write protections require three unique membrane spaces
   1. Original
