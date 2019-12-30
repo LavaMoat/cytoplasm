@@ -3,6 +3,17 @@ NOTES
 etienne qs
 - bridge is recursive
   - debugging (eg with console logs) can induce inf loops
+- recursive membranes?
+  -  doesnt seem possible to tell membrane space origin of a newly witnessed object
+  -  can recursive membranes be flattened?
+  - skipBridge is sort of a detection of things from outside the membrane, does this work in recursive membranes?
+- TypedArrays
+  - bug where length lookup fails
+    - inGraph: ethereumjs-util
+    - outGraph: keccak
+    - rawRef: instance of Buffer
+    - TypedArrays require length getter receiver to be a TypedArray
+
 
 kowtow thoughts
 - Shadow-on-write protections require three unique membrane spaces
