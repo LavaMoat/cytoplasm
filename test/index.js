@@ -674,11 +674,11 @@ test('kowtow - class - class syntax subclass readme example', (t) => {
 
 test('Types - typedArray', (t) => {
   const membrane = new Membrane()
-  
+
   const graphA = membrane.makeObjectGraph({ label: 'a' })
   const graphB = membrane.makeObjectGraph({ label: 'b' })
-  
-  const objA = new Uint8Array([1, 2, 3])   
+
+  const objA = new Uint8Array([1, 2, 3])
 
   const wrappedA = membrane.bridge(objA, graphA, graphB)
 
@@ -688,13 +688,13 @@ test('Types - typedArray', (t) => {
 
 test('Types - typedArray subclass', (t) => {
   const membrane = new Membrane()
-  
+
   const graphA = membrane.makeObjectGraph({ label: 'a' })
   const graphB = membrane.makeObjectGraph({ label: 'b' })
   const graphC = membrane.makeObjectGraph({ label: 'c' })
-  
-  
-  const objA = new Uint8Array([1, 2, 3])   
+
+
+  const objA = new Uint8Array([1, 2, 3])
 
   const wrappedA = membrane.bridge(objA, graphA, graphB)
   const wrappedB = membrane.bridge(wrappedA, graphB, graphC)
@@ -713,7 +713,7 @@ test('ProxyHandler - set', (t) => {
   const wrappedA = membrane.bridge(objA, graphA, graphB)
   const objB = Object.create(wrappedA)
 
-  let error  
+  let error
 
   try {
     objB.a = 2
@@ -724,4 +724,3 @@ test('ProxyHandler - set', (t) => {
   t.notOk(error)
   t.end()
 })
-
