@@ -5,7 +5,6 @@ const { Membrane } = require('../src/index')
 const createReadOnlyDistortion = require('../src/distortions/readOnly')
 
 test('basic - bridge', (t) => {
-
   const membrane = new Membrane()
 
   const graphA = membrane.makeObjectGraph({ label: 'a' })
@@ -17,7 +16,7 @@ test('basic - bridge', (t) => {
     function: () => 42,
     object: {
       child: true
-    },
+    }
   }
 
   const bridgedA = membrane.bridge(objA, graphA, graphB)
@@ -28,12 +27,9 @@ test('basic - bridge', (t) => {
   t.deepEqual(bridgedA.object, objA.object, 'object deep equals')
 
   t.end()
-
 })
 
-
 test('basic - 3-side', (t) => {
-
   const membrane = new Membrane()
 
   const graphA = membrane.makeObjectGraph({ label: 'a' })
@@ -51,14 +47,14 @@ test('basic - 3-side', (t) => {
       get: () => {
         return obj
       },
-      check: (target) => obj === target,
+      check: (target) => obj === target
     }
   })()
   const objB = (() => {
     const localA = getObjectFromFor(objA, graphA, graphB)
     return {
       name: 'b',
-      get: () => localA.get(),
+      get: () => localA.get()
     }
   })()
   const objC = (() => {
@@ -70,7 +66,7 @@ test('basic - 3-side', (t) => {
       testRemote: () => {
         const ref = localB.get()
         return localA.check(ref)
-      },
+      }
     }
   })()
 
@@ -79,11 +75,9 @@ test('basic - 3-side', (t) => {
   t.ok(objC.testRemote(), 'obj-c test remote')
 
   t.end()
-
 })
 
 test('getter - throw custom Error', (t) => {
-
   const membrane = new Membrane()
 
   const graphA = membrane.makeObjectGraph({ label: 'a' })
@@ -115,7 +109,6 @@ test('getter - throw custom Error', (t) => {
   }
 
   t.end()
-
 })
 
 //
@@ -196,7 +189,7 @@ test('kowtow - basic - method return wrapped', (t) => {
   const orig = {
     child: {},
     abc: function () { return this },
-    xyz: function () { return this.child },
+    xyz: function () { return this.child }
   }
   const copy = createCopyFactory()(orig)
 
@@ -335,7 +328,7 @@ test('kowtow - propertyDescriptors - getOwnPropertyDescriptors', (t) => {
 
   t.deepEqual(Object.keys(copyDecs), Object.keys(origDecs), 'getOwnPropertyDescriptors keys match')
 
-  for (let key of Object.keys(origDecs)) {
+  for (const key of Object.keys(origDecs)) {
     const origProp = origDecs[key]
     const copyProp = copyDecs[key]
     if ('value' in origProp) {
@@ -364,7 +357,7 @@ test('kowtow - propertyDescriptors - defineProperty', (t) => {
     value: 42,
     writable: true,
     enumerable: true,
-    configurable: true,
+    configurable: true
   }
 
   Object.defineProperty(copy, 'a', config)
@@ -409,7 +402,7 @@ test('kowtow - propertyDescriptors - getter that re-defines itself on original',
   Object.defineProperty(orig, 'xyz', {
     get () {
       Object.defineProperty(orig, 'xyz', {
-        value: 2,
+        value: 2
       })
       return 1
     },
@@ -433,7 +426,7 @@ test('kowtow - propertyDescriptors - setter on original', (t) => {
   Object.defineProperty(orig, 'xyz', {
     set () {
       this.abc = 123
-    },
+    }
   })
 
   t.equal(orig.abc, undefined, 'orig correct start state')
@@ -454,7 +447,7 @@ test('kowtow - propertyDescriptors - non configurable property', (t) => {
 
   Object.defineProperty(orig, 'abc', {
     value: 123,
-    configurable: false,
+    configurable: false
   })
 
   t.equal(orig.abc, 123, 'orig correct start state')
@@ -497,13 +490,12 @@ test('kowtow - traps - for in', (t) => {
   const { Buffer } = require('buffer')
   const Copy = createCopyFactory()(Buffer)
 
-  for (let key in Copy) {
+  for (const key in Copy) {
     t.ok(key)
   }
 
   t.end()
 })
-
 
 test('kowtow - class - function class', (t) => {
   function Orig () { this.b = 123 }
@@ -548,6 +540,7 @@ test('kowtow - class - class syntax', (t) => {
     constructor () {
       this.b = 123
     }
+
     a () {
       this.b = 456
     }
@@ -591,12 +584,12 @@ test('kowtow - class - class syntax subclass minimal', (t) => {
   t.end()
 })
 
-
 test('kowtow - class - class syntax subclass', (t) => {
   class Orig {
     constructor () {
       this.b = 123
     }
+
     a () {
       this.b = 456
     }
@@ -612,7 +605,6 @@ test('kowtow - class - class syntax subclass', (t) => {
     }
   }
   NewClass.prototype.label = 'new'
-
 
   const inst = new NewClass()
 
@@ -693,7 +685,6 @@ test('Types - typedArray subclass', (t) => {
   const graphB = membrane.makeObjectGraph({ label: 'b' })
   const graphC = membrane.makeObjectGraph({ label: 'c' })
 
-
   const objA = new Uint8Array([1, 2, 3])
 
   const wrappedA = membrane.bridge(objA, graphA, graphB)
@@ -709,7 +700,7 @@ test('ProxyHandler - set', (t) => {
   const graphA = membrane.makeObjectGraph({ label: 'a', createHandler: createReadOnlyDistortion })
   const graphB = membrane.makeObjectGraph({ label: 'b' })
 
-  const objA = {a: 'b'}
+  const objA = { a: 'b' }
   const wrappedA = membrane.bridge(objA, graphA, graphB)
   const objB = Object.create(wrappedA)
 
@@ -717,7 +708,7 @@ test('ProxyHandler - set', (t) => {
 
   try {
     objB.a = 2
-  } catch(_error) {
+  } catch (_error) {
     error = _error
   }
 

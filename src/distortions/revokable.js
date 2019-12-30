@@ -60,11 +60,11 @@ function createRevokableDistortion () {
     construct: (...args) => {
       if (revoked) throw new Error('Cytoplasm RevokableDistortion was revoked')
       return Reflect.construct(...args)
-    },
+    }
   }
 
   return {
     api,
-    handler,
+    handler
   }
 }

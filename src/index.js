@@ -1,6 +1,6 @@
 // theres some things we may need to enforce differently when in and out of strict mode
 // e.g. fn.arguments
-"use strict"
+'use strict'
 
 class ObjectGraph {
   constructor ({ label, createHandler }) {
@@ -28,9 +28,11 @@ class Membrane {
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
   }
+
   makeObjectGraph ({ label, createHandler }) {
     return new ObjectGraph({ label, createHandler })
   }
+
   // if rawObj is not part of inGraph, should we explode?
   bridge (inRef, inGraph, outGraph) {
     // skip if should be passed directly (danger)
@@ -102,7 +104,6 @@ class Membrane {
 //   MembraneHandler calls next() <-- needs to see distortion result
 //     LocalWritesHandler sets behavior
 
-
 // currently creating handler per-object
 // perf: create only once?
 //   better to create one each time with rawRef bound?
@@ -121,7 +122,7 @@ function createMembraneProxyHandler (prevProxyHandler, rawRef, inGraph, outGraph
     deleteProperty: createHandlerFn(prevProxyHandler.deleteProperty, rawRef, inGraph, outGraph, bridge),
     ownKeys: createHandlerFn(prevProxyHandler.ownKeys, rawRef, inGraph, outGraph, bridge),
     apply: createHandlerFn(prevProxyHandler.apply, rawRef, inGraph, outGraph, bridge),
-    construct: createHandlerFn(prevProxyHandler.construct, rawRef, inGraph, outGraph, bridge),
+    construct: createHandlerFn(prevProxyHandler.construct, rawRef, inGraph, outGraph, bridge)
   }
   return proxyHandler
 }
@@ -174,7 +175,7 @@ function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
 function getProxyTargetForValue (value) {
   if (typeof value === 'function') {
     if (value.prototype) {
-      return function(){}
+      return function () {}
     } else {
       return () => {}
     }

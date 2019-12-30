@@ -8,13 +8,13 @@ function createDistortion ({ setHandlerForRef }) {
     preventExtensions: () => false,
     defineProperty: () => false,
     set: (target, key, value, receiver) => {
-      //Override mistake workaround
+      // Override mistake workaround
       if (target === receiver) {
         return false
       }
 
-      //Indirect set, redirect to a defineProperty
-      return Reflect.defineProperty(receiver, key, {value, enumerable: true, writable: true, configurable: true})
+      // Indirect set, redirect to a defineProperty
+      return Reflect.defineProperty(receiver, key, { value, enumerable: true, writable: true, configurable: true })
     },
     deleteProperty: () => false,
     // special case: instantiated children should be mutable
@@ -33,6 +33,6 @@ function createDistortion ({ setHandlerForRef }) {
     getPrototypeOf: Reflect.getPrototypeOf,
     has: Reflect.has,
     isExtensible: Reflect.isExtensible,
-    ownKeys: Reflect.ownKeys,
+    ownKeys: Reflect.ownKeys
   }
 }
