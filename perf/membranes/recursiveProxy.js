@@ -8,8 +8,16 @@ const { getPrototypeOf, prototype: ObjectPrototype } = Object
 // making this a class vs object has neglible effect
 const handler = {
   get (target, prop, receiver) {
-    return wrap(Reflect.get(target, prop, receiver))
-  }
+    // return wrap(Reflect.get(target, prop, receiver))
+    // this is significantly faster than Reflect.get
+    // but in accurate wrt the receiver/target mismatch
+    return wrap(target[prop])
+  },
+  set (target, prop, value, receiver) {
+    // this is significantly faster than Reflect.set
+    // but in accurate wrt the receiver/target mismatch
+    target[prop] = value
+  },
 }
 
 module.exports = () => ({
