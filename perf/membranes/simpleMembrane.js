@@ -5,11 +5,13 @@ const { getPrototypeOf, isFrozen, prototype: ObjectPrototype } = Object
 
 const handler = {
   get (target, prop, receiver) {
-    return wrap(Reflect.get(target, prop, receiver))
-  },
-  set (target, key, value, receiver) {
     const unwrappedReceiver = unwrap(receiver)
-    unwrappedReceiver[key] = value
+    const value = unwrappedReceiver[prop]
+    return wrap(value)
+  },
+  set (target, prop, value, receiver) {
+    const unwrappedReceiver = unwrap(receiver)
+    unwrappedReceiver[prop] = value
     return true
   }
 }
