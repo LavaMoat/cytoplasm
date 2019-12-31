@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "node test/index.js"
+    "test": "node test/index.js",
+    "performance": "node perf/index.js"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
