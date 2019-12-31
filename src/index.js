@@ -81,11 +81,9 @@ class Membrane {
     }
 
     // create new wrapping for rawRef
-    const proxyTarget = getProxyTargetForValue(rawRef)
     const distortionHandler = originGraph.getHandlerForRef(rawRef)
     const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, originGraph, outGraph, this.bridge.bind(this))
-    const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
-    const outRef = new Proxy(proxyTarget, proxyHandler)
+    const outRef = createFlexibleProxy(rawRef, membraneProxyHandler)
     // cache both ways
     outGraph.rawToBridged.set(rawRef, outRef)
     this.bridgedToRaw.set(outRef, rawRef)
@@ -147,6 +145,54 @@ function createMembraneProxyHandler (prevProxyHandler, rawRef, inGraph, outGraph
   return proxyHandler
 }
 
+function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
+  return function (_, ...outArgs) {
+    const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
+    let value, inErr
+    try {
+      value = reflectFn(rawRef, ...inArgs)
+    } catch (err) {
+      inErr = err
+    }
+    if (inErr !== undefined) {
+      const outErr = bridge(inErr, inGraph, outGraph)
+      throw outErr
+    } else {
+      return bridge(value, inGraph, outGraph)
+    }
+  }
+}
+
+module.exports = { Membrane, ObjectGraph }
+
+//
+// FlexibleProxy
+//
+
+function createFlexibleProxy (target, handler) {
+  const flexibleTarget = getProxyTargetForValue(target)
+  const flexibleHandler = respectProxyInvariants(flexibleTarget, handler)
+  return new Proxy(flexibleTarget, flexibleHandler)
+}
+
+// use replacement proxyTarget for flexible distortions less restrained by "Proxy invariant"
+// e.g. hide otherwise non-configurable properties
+function getProxyTargetForValue (value) {
+  if (typeof value === 'function') {
+    if (value.prototype) {
+      return function () {}
+    } else {
+      return () => {}
+    }
+  } else {
+    if (Array.isArray(value)) {
+      return []
+    } else {
+      return {}
+    }
+  }
+}
+
 // TODO ensure we're enforcing all proxy invariants
 function respectProxyInvariants (proxyTarget, rawProxyHandler) {
   // the defaults arent needed for the membraneProxyHandler,
@@ -171,41 +217,3 @@ function respectProxyInvariants (proxyTarget, rawProxyHandler) {
   // return modified handler
   return respectfulProxyHandler
 }
-
-function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
-  return function (_, ...outArgs) {
-    const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
-    let value, inErr
-    try {
-      value = reflectFn(rawRef, ...inArgs)
-    } catch (err) {
-      inErr = err
-    }
-    if (inErr !== undefined) {
-      const outErr = bridge(inErr, inGraph, outGraph)
-      throw outErr
-    } else {
-      return bridge(value, inGraph, outGraph)
-    }
-  }
-}
-
-// use replacement proxyTarget for flexible distortions less restrained by "Proxy invariant"
-// e.g. hide otherwise non-configurable properties
-function getProxyTargetForValue (value) {
-  if (typeof value === 'function') {
-    if (value.prototype) {
-      return function () {}
-    } else {
-      return () => {}
-    }
-  } else {
-    if (Array.isArray(value)) {
-      return []
-    } else {
-      return {}
-    }
-  }
-}
-
-module.exports = { Membrane, ObjectGraph }
