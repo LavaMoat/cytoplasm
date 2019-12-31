@@ -17,6 +17,7 @@ const handler = {
     // this is significantly faster than Reflect.set
     // but in accurate wrt the receiver/target mismatch
     target[prop] = value
+    return true
   },
 }
 
