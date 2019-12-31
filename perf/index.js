@@ -31,18 +31,31 @@ async function runSuite (suiteParams) {
     })
   })
 
+  const suiteResults = []
+
   suite
     .on('start', function () {
       console.log(`== ${this.name} ==`)
     })
     .on('cycle', function (event) {
-      console.log(this.name, '-', String(event.target))
+      const benchmark = event.target
+      suiteResults.push({
+        name: benchmark.name,
+        hz: benchmark.hz,
+      })
+      console.log(this.name, '-', String(benchmark))
+      // console.log(`${benchmark.name}: ${benchmark.hz.toFixed(2)}`)
     })
     .on('complete', function () {
-      console.log('')
-      resolve()
+      suiteResults.sort((a,b) => b.hz - a.hz)
+      console.table(suiteResults)
+      resolve({
+        name: this.name,
+        results: suiteResults,
+      })
     })
-    .on('error', function (error) {
+    .on('error', function (event) {
+      const { error } = event.target
       reject(error)
     })
     .run({ async: true })
@@ -52,7 +65,20 @@ async function runSuite (suiteParams) {
 
 // runAll in series (important)
 async function runAll (suites) {
+  const allResults = []
   for (const suite of suites) {
-    await runSuite(suite)
+    allResults.push(await runSuite(suite))
   }
+  displayAllResults(allResults)
+}
+
+function displayAllResults (allResults) {
+  const structured = {}
+  allResults.forEach(({ name: suiteName, results: suiteResults }) => {
+    suiteResults.forEach(({ name: stratName, hz }) => {
+      const strat = structured[stratName] = structured[stratName] || {}
+      strat[suiteName] = hz
+    })
+  })
+  console.table(structured)
 }
