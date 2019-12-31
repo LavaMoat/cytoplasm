@@ -2,6 +2,8 @@
 // e.g. fn.arguments
 'use strict'
 
+const { isArray } = Array
+
 class ObjectGraph {
   constructor ({ label, createHandler }) {
     this.rawToBridged = new WeakMap()
@@ -35,65 +37,83 @@ class Membrane {
 
   // if rawObj is not part of inGraph, should we explode?
   bridge (inRef, inGraph, outGraph) {
+
+    //
     // skip if should be passed directly (danger)
+    //
+
     if (this.shouldSkipBridge(inRef)) {
       // console.log(`membrane.bridge should skip in:${inGraph.label} -> out:${outGraph.label}`)
       return inRef
     }
-    // unwrap ref if bridged to "in"
-    let rawRef
-    if (this.bridgedToRaw.has(inRef)) {
-      rawRef = this.bridgedToRaw.get(inRef)
-      const origin = this.rawToOrigin.get(rawRef)
-      // console.log('rawToOrigin get', origin)
-      // if this ref originates in the outGraph, return raw!
-      if (origin === outGraph) {
-        // console.log(`membrane.bridge inRef known headed home in:${inGraph.label} -> out:${outGraph.label}`)
-        return rawRef
-      }
-      // console.log(`membrane.bridge inRef known origin:${origin.label} in:${inGraph.label} -> out:${outGraph.label}`)
-      // set the raw ref so it can be wrapped for outGraph
-    } else {
-      // console.log(`inRef is proxy`, !!inRef._isProxy, '<---')
-      if (this.rawToOrigin.has(rawRef)) {
-        throw new Error('something broke')
-      }
 
-      // console.log(`membrane.bridge inRef new ref (${typeof inRef}) in:${inGraph.label} -> out:${outGraph.label}`)
+    //
+    // unwrap ref and detect "origin" graph
+    //
+
+    let rawRef
+    let originGraph
+
+    if (this.bridgedToRaw.has(inRef)) {
+      // we know this ref
+      rawRef = this.bridgedToRaw.get(inRef)
+      originGraph = this.rawToOrigin.get(rawRef)
+    } else {
       // we've never seen this ref before - must be raw and from inGraph
       rawRef = inRef
-      // console.log('rawToOrigin set', inGraph.label)
-      this.rawToOrigin.set(rawRef, inGraph)
+      originGraph = inGraph
+      // record origin
+      this.rawToOrigin.set(inRef, inGraph)
     }
-    // if outGraph already has bridged iterface for rawRef, use it
-    // check if cache available
+
+    //
+    // wrap for ref for "out" graph
+    //
+
+    // if this ref originates in the "out" graph, deliver unwrapped
+    if (originGraph === outGraph) {
+      return rawRef
+    }
+
+    // if outGraph already has bridged wrapping for rawRef, use it
     if (outGraph.rawToBridged.has(rawRef)) {
-      // console.log(`membrane.bridge cache hit in:${inGraph.label} -> out:${outGraph.label}`)
       return outGraph.rawToBridged.get(rawRef)
     }
 
-    const originGraph = this.rawToOrigin.get(rawRef)
+    // create new wrapping for rawRef
     const proxyTarget = getProxyTargetForValue(rawRef)
     const distortionHandler = originGraph.getHandlerForRef(rawRef)
     const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, originGraph, outGraph, this.bridge.bind(this))
     const proxyHandler = respectProxyInvariants(proxyTarget, membraneProxyHandler)
-    const bridgedRef = new Proxy(proxyTarget, proxyHandler)
+    const outRef = new Proxy(proxyTarget, proxyHandler)
     // cache both ways
-    outGraph.rawToBridged.set(rawRef, bridgedRef)
-    this.bridgedToRaw.set(bridgedRef, rawRef)
-    if (!this.rawToOrigin.has(rawRef)) {
-      throw new Error('something broke')
-    }
+    outGraph.rawToBridged.set(rawRef, outRef)
+    this.bridgedToRaw.set(outRef, rawRef)
+
     // all done
-    return bridgedRef
+    return outRef
   }
 
   shouldSkipBridge (value) {
-    // skip if a simple value
-    if (Object(value) !== value) return true
-    // skip if primodial
-    if (this.primordials.includes(value)) return true
-    // otherwise we cant skip it
+    // Check for null and undefined
+    if (value === null) {
+      return true
+    }
+    if (value === undefined) {
+      return true
+    }
+
+    // Check for non-objects
+    const valueType = typeof value
+    if (valueType !== 'object' && valueType !== 'function') {
+      return true
+    }
+
+    // Early exit if the object is an Array.
+    if (isArray(value) === true) {
+      return false
+    }
+
     return false
   }
 }
