@@ -18,39 +18,13 @@ module.exports = () => ({
 
 function wrap (raw) {
   // skip if not object-like
-  if (!(function(object){
-    // Intentionally checking for null.
-    if (object === null) {
-      return false
-    }
-
-    // Treat all non-object types, including undefined, as non-observable values.
-    if (typeof object !== 'object') {
-      return false
-    }
-
-    // Early exit if the object is an Array.
-    if (isArray(object) === true) {
-      return true
-    }
-
-    const proto = getPrototypeOf(object)
-    const isPlainObject =
-          proto === null ||
-          proto === ObjectPrototype ||
-          getPrototypeOf(proto) === null
-
-    if (isPlainObject === false) {
-      return false
-    }
-
-    return true
-  })(raw)) return raw
+  if (!isWrappable(raw)) return raw
   // return wrapped version
   const proxy = new Proxy(raw, handler)
   return proxy
 }
 
+// inlining this has neglible effect
 function isWrappable (object) {
   // Intentionally checking for null.
   if (object === null) {
