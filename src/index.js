@@ -225,10 +225,21 @@ function respectProxyInvariants (rawProxyHandler) {
         const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(fakeTarget, prop)
         Reflect.defineProperty(fakeTarget, prop, propDesc)
       })
+      // transfer prototype
+      Reflect.setPrototypeOf(fakeTarget, handlerWithDefaults.getPrototypeOf(fakeTarget))
       // prevent extensions on fakeTarget
       Reflect.preventExtensions(fakeTarget)
     }
     // return the result
+    return didAllow
+  }
+  // enforce defineProperty configurable: false
+  respectfulProxyHandler.defineProperty = (fakeTarget, prop, propDesc) => {
+    const didAllow = handlerWithDefaults.defineProperty(fakeTarget, prop, propDesc)
+    // need to also define on the fakeTarget
+    if (didAllow && !propDesc.configurable) {
+      Reflect.defineProperty(fakeTarget, prop, propDesc)
+    }
     return didAllow
   }
   // return modified handler
