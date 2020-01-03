@@ -727,6 +727,8 @@ test('FlexibleProxy - preventExtensions invariant', (t) => {
 
   // this will throw an error if the invariant is not preserved
   Reflect.preventExtensions(wrappedA)
+  // this will throw an error if all keys are not transferred to the fakeTarget
+  Reflect.ownKeys(wrappedA)
 
   // ensure preventExtensions was forwarded to the original object
   let error

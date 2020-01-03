@@ -169,9 +169,9 @@ module.exports = { Membrane, ObjectGraph }
 // FlexibleProxy
 //
 
-function createFlexibleProxy (target, handler) {
-  const flexibleTarget = getProxyTargetForValue(target)
-  const flexibleHandler = respectProxyInvariants(handler)
+function createFlexibleProxy (realTarget, realHandler) {
+  const flexibleTarget = getProxyTargetForValue(realTarget)
+  const flexibleHandler = respectProxyInvariants(realHandler)
   return new Proxy(flexibleTarget, flexibleHandler)
 }
 
@@ -220,6 +220,12 @@ function respectProxyInvariants (rawProxyHandler) {
     const didAllow = handlerWithDefaults.preventExtensions(fakeTarget)
     // if it did allow, we need to enforce this on the fakeTarget
     if (didAllow === true) {
+      // transfer all keys onto fakeTarget
+      const propDescs = handlerWithDefaults.ownKeys(fakeTarget).map(prop => {
+        const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(fakeTarget, prop)
+        Reflect.defineProperty(fakeTarget, prop, propDesc)
+      })
+      // prevent extensions on fakeTarget
       Reflect.preventExtensions(fakeTarget)
     }
     // return the result
