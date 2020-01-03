@@ -725,6 +725,7 @@ test('FlexibleProxy - preventExtensions invariant', (t) => {
   const objA = { xyz: true }
   const wrappedA = membrane.bridge(objA, graphA, graphB)
 
+  // this will throw an error if the invariant is not preserved
   Reflect.preventExtensions(wrappedA)
 
   // ensure preventExtensions was forwarded to the original object
