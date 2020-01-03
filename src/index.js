@@ -171,7 +171,7 @@ module.exports = { Membrane, ObjectGraph }
 
 function createFlexibleProxy (target, handler) {
   const flexibleTarget = getProxyTargetForValue(target)
-  const flexibleHandler = respectProxyInvariants(flexibleTarget, handler)
+  const flexibleHandler = respectProxyInvariants(handler)
   return new Proxy(flexibleTarget, flexibleHandler)
 }
 
@@ -194,25 +194,36 @@ function getProxyTargetForValue (value) {
 }
 
 // TODO ensure we're enforcing all proxy invariants
-function respectProxyInvariants (proxyTarget, rawProxyHandler) {
+function respectProxyInvariants (rawProxyHandler) {
   // the defaults arent needed for the membraneProxyHandler,
   // but might be for an imcomplete proxy handler
   const handlerWithDefaults = Object.assign({}, Reflect, rawProxyHandler)
   const respectfulProxyHandler = Object.assign({}, handlerWithDefaults)
-  // add respect
-  respectfulProxyHandler.getOwnPropertyDescriptor = (_, key) => {
+  // enforce configurable false props
+  respectfulProxyHandler.getOwnPropertyDescriptor = (fakeTarget, key) => {
     // ensure propDesc matches proxy target's non-configurable property
-    const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(_, key)
+    const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(fakeTarget, key)
     if (propDesc && !propDesc.configurable) {
-      const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(proxyTarget, key)
+      const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(fakeTarget, key)
       const proxyTargetPropIsConfigurable = (!proxyTargetPropDesc || proxyTargetPropDesc.configurable)
       // console.warn('@@ getOwnPropertyDescriptor - non configurable', String(key), !!proxyTargetPropIsConfigurable)
       // if proxy target is configurable (and real target is not) update the proxy target to ensure the invariant holds
       if (proxyTargetPropIsConfigurable) {
-        Reflect.defineProperty(proxyTarget, key, propDesc)
+        Reflect.defineProperty(fakeTarget, key, propDesc)
       }
     }
     return propDesc
+  }
+  // enforce preventing extensions
+  respectfulProxyHandler.preventExtensions = (fakeTarget) => {
+    // check if provided handler allowed the preventExtensions call
+    const didAllow = handlerWithDefaults.preventExtensions(fakeTarget)
+    // if it did allow, we need to enforce this on the fakeTarget
+    if (didAllow === true) {
+      Reflect.preventExtensions(fakeTarget)
+    }
+    // return the result
+    return didAllow
   }
   // return modified handler
   return respectfulProxyHandler

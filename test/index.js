@@ -715,3 +715,26 @@ test('ProxyHandler - set', (t) => {
   t.notOk(error)
   t.end()
 })
+
+test('FlexibleProxy - preventExtensions invariant', (t) => {
+  const membrane = new Membrane()
+
+  const graphA = membrane.makeObjectGraph({ label: 'a' })
+  const graphB = membrane.makeObjectGraph({ label: 'b' })
+
+  const objA = { xyz: true }
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+
+  Reflect.preventExtensions(wrappedA)
+
+  // ensure preventExtensions was forwarded to the original object
+  let error
+  try {
+    objA.zzz = true
+  } catch (_error) {
+    error = _error
+  }
+
+  t.ok(error, 'saw expected error')
+  t.end()
+})
