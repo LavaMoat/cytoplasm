@@ -1,4 +1,4 @@
-const { getIntrinsics } = require('ses/src/intrinsics.js')
+const { getIntrinsics } = require('../lib/intrinsics.js')
 module.exports = {
   getIntrinsics: () => {
     try {

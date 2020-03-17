@@ -2,20 +2,22 @@
   "scripts": {
     "test": "node test/index.js",
     "performance": "node perf/index.js",
-    "lib:intrinsics": "browserify src/getIntrinsics.js --standalone 'getIntrinsics' -g [ babelify --plugins [ @babel/plugin-transform-modules-commonjs ] ] > lib/getIntrinsics.js"
+    "lib": "babel --plugins @babel/plugin-transform-modules-commonjs node_modules/ses/src/{assert,*intrinsic*}.js --out-dir lib/",
+    "dist": "browserify --standalone 'Membrane' src/index.js > dist/index.js"
   },
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.7",
     "@babel/plugin-transform-modules-commonjs": "^7.8.3",
     "babelify": "^10.0.0",
     "benchmark": "^2.1.4",
     "browserify": "^16.5.0",
+    "core-js": "^3.6.4",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
     "observable-membrane": "^0.26.1",
+    "ses": "^0.7.3",
     "standard": "^14.3.1",
-    "tape": "^4.11.0",
-    "core-js": "^3.6.4",
-    "ses": "^0.7.3"
+    "tape": "^4.11.0"
   },
   "name": "cytoplasm",
   "version": "3.0.0",

@@ -2,7 +2,7 @@
 // e.g. fn.arguments
 'use strict'
 
-const { getIntrinsics } = require('../lib/getIntrinsics')
+const { getIntrinsics } = require('./getIntrinsics')
 
 const { isArray } = Array
 
