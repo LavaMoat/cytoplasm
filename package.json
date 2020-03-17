@@ -18,7 +18,7 @@
     "ses": "^0.7.3"
   },
   "name": "cytoplasm",
-  "version": "2.0.5",
+  "version": "3.0.0",
   "main": "src/index.js",
   "repository": "git@github.com:kumavis/cytoplasm.git",
   "author": "kumavis <aaron@kumavis.me>",
