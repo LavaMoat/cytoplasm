@@ -25,7 +25,8 @@ class MembraneSpace {
 }
 
 class Membrane {
-  constructor () {
+  constructor ({ debugMode } = {}) {
+    this.debugMode = debugMode
     this.primordials = [Object, Object.prototype]
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
@@ -82,7 +83,14 @@ class Membrane {
 
     // create new wrapping for rawRef
     const distortionHandler = originGraph.getHandlerForRef(rawRef)
-    const membraneProxyHandler = createMembraneProxyHandler(distortionHandler, rawRef, originGraph, outGraph, this.bridge.bind(this))
+    const membraneProxyHandler = createMembraneProxyHandler(
+      this.debugMode,
+      distortionHandler,
+      rawRef,
+      originGraph,
+      outGraph,
+      this.bridge.bind(this),
+    )
     const outRef = createFlexibleProxy(rawRef, membraneProxyHandler)
     // cache both ways
     outGraph.rawToBridged.set(rawRef, outRef)
@@ -126,26 +134,35 @@ class Membrane {
 // perf: create only once?
 //   better to create one each time with rawRef bound?
 //   or find a way to map target to rawRef
-function createMembraneProxyHandler (prevProxyHandler, rawRef, inGraph, outGraph, bridge) {
+function createMembraneProxyHandler (debugMode, prevProxyHandler, rawRef, inGraph, outGraph, bridge) {
   const proxyHandler = {
-    getPrototypeOf: createHandlerFn(prevProxyHandler.getPrototypeOf, rawRef, inGraph, outGraph, bridge),
-    setPrototypeOf: createHandlerFn(prevProxyHandler.setPrototypeOf, rawRef, inGraph, outGraph, bridge),
-    isExtensible: createHandlerFn(prevProxyHandler.isExtensible, rawRef, inGraph, outGraph, bridge),
-    preventExtensions: createHandlerFn(prevProxyHandler.preventExtensions, rawRef, inGraph, outGraph, bridge),
-    getOwnPropertyDescriptor: createHandlerFn(prevProxyHandler.getOwnPropertyDescriptor, rawRef, inGraph, outGraph, bridge),
-    defineProperty: createHandlerFn(prevProxyHandler.defineProperty, rawRef, inGraph, outGraph, bridge),
-    has: createHandlerFn(prevProxyHandler.has, rawRef, inGraph, outGraph, bridge),
-    get: createHandlerFn(prevProxyHandler.get, rawRef, inGraph, outGraph, bridge),
-    set: createHandlerFn(prevProxyHandler.set, rawRef, inGraph, outGraph, bridge),
-    deleteProperty: createHandlerFn(prevProxyHandler.deleteProperty, rawRef, inGraph, outGraph, bridge),
-    ownKeys: createHandlerFn(prevProxyHandler.ownKeys, rawRef, inGraph, outGraph, bridge),
-    apply: createHandlerFn(prevProxyHandler.apply, rawRef, inGraph, outGraph, bridge),
-    construct: createHandlerFn(prevProxyHandler.construct, rawRef, inGraph, outGraph, bridge)
+    getPrototypeOf: createHandlerFn(debugMode, prevProxyHandler.getPrototypeOf, rawRef, inGraph, outGraph, bridge),
+    setPrototypeOf: createHandlerFn(debugMode, prevProxyHandler.setPrototypeOf, rawRef, inGraph, outGraph, bridge),
+    isExtensible: createHandlerFn(debugMode, prevProxyHandler.isExtensible, rawRef, inGraph, outGraph, bridge),
+    preventExtensions: createHandlerFn(debugMode, prevProxyHandler.preventExtensions, rawRef, inGraph, outGraph, bridge),
+    getOwnPropertyDescriptor: createHandlerFn(debugMode, prevProxyHandler.getOwnPropertyDescriptor, rawRef, inGraph, outGraph, bridge),
+    defineProperty: createHandlerFn(debugMode, prevProxyHandler.defineProperty, rawRef, inGraph, outGraph, bridge),
+    has: createHandlerFn(debugMode, prevProxyHandler.has, rawRef, inGraph, outGraph, bridge),
+    get: createHandlerFn(debugMode, prevProxyHandler.get, rawRef, inGraph, outGraph, bridge),
+    set: createHandlerFn(debugMode, prevProxyHandler.set, rawRef, inGraph, outGraph, bridge),
+    deleteProperty: createHandlerFn(debugMode, prevProxyHandler.deleteProperty, rawRef, inGraph, outGraph, bridge),
+    ownKeys: createHandlerFn(debugMode, prevProxyHandler.ownKeys, rawRef, inGraph, outGraph, bridge),
+    apply: createHandlerFn(debugMode, prevProxyHandler.apply, rawRef, inGraph, outGraph, bridge),
+    construct: createHandlerFn(debugMode, prevProxyHandler.construct, rawRef, inGraph, outGraph, bridge)
   }
   return proxyHandler
 }
 
-function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
+function createHandlerFn (debugMode, reflectFn, rawRef, inGraph, outGraph, bridge) {
+  if (debugMode) {
+    // in debugMode, we dont safely catch and wrap errors
+    // while this is insecure, it makes debugging much easier
+    return function (_, ...outArgs) {
+      const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
+      let value = reflectFn(rawRef, ...inArgs)
+      return bridge(value, inGraph, outGraph)
+    }
+  }
   return function (_, ...outArgs) {
     const inArgs = outArgs.map(arg => bridge(arg, outGraph, inGraph))
     let value, inErr
