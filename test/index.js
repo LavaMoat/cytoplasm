@@ -7,8 +7,8 @@ const createReadOnlyDistortion = require('../src/distortions/readOnly')
 test('basic - bridge', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   const objA = {
     number: 1,
@@ -32,9 +32,9 @@ test('basic - bridge', (t) => {
 test('basic - 3-side', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
-  const graphC = membrane.makeObjectGraph({ label: 'c' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
+  const graphC = membrane.makeMembraneSpace({ label: 'c' })
 
   function getObjectFromFor (rawObj, originGraph, destinationGraph) {
     return membrane.bridge(rawObj, originGraph, destinationGraph)
@@ -80,8 +80,8 @@ test('basic - 3-side', (t) => {
 test('getter - throw custom Error', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   class CustomError extends Error {}
 
@@ -119,8 +119,8 @@ test('getter - throw custom Error', (t) => {
 
 function createCopyFactory () {
   const membrane = new Membrane()
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   return (target) => {
     return membrane.bridge(target, graphA, graphB)
@@ -667,8 +667,8 @@ test('kowtow - class - class syntax subclass readme example', (t) => {
 test('Types - typedArray', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   const objA = new Uint8Array([1, 2, 3])
 
@@ -681,9 +681,9 @@ test('Types - typedArray', (t) => {
 test('Types - typedArray subclass', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
-  const graphC = membrane.makeObjectGraph({ label: 'c' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
+  const graphC = membrane.makeMembraneSpace({ label: 'c' })
 
   const objA = new Uint8Array([1, 2, 3])
 
@@ -697,8 +697,8 @@ test('Types - typedArray subclass', (t) => {
 test('ProxyHandler - set', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a', createHandler: createReadOnlyDistortion })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a', createHandler: createReadOnlyDistortion })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   const objA = { a: 'b' }
   const wrappedA = membrane.bridge(objA, graphA, graphB)
@@ -719,8 +719,8 @@ test('ProxyHandler - set', (t) => {
 test('FlexibleProxy - preventExtensions invariant', (t) => {
   const membrane = new Membrane()
 
-  const graphA = membrane.makeObjectGraph({ label: 'a' })
-  const graphB = membrane.makeObjectGraph({ label: 'b' })
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
   const objA = { xyz: true }
   const wrappedA = membrane.bridge(objA, graphA, graphB)

@@ -4,8 +4,8 @@ const { Membrane } = require('../src/index')
 const createHandler = require('../src/distortions/readOnly')
 
 const membrane = new Membrane()
-const graphA = membrane.makeObjectGraph({ label: 'a', createHandler })
-const graphB = membrane.makeObjectGraph({ label: 'b' })
+const graphA = membrane.makeMembraneSpace({ label: 'a', createHandler })
+const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
 const objA = {
   value: 1,

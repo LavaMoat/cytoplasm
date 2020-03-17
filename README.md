@@ -8,6 +8,26 @@ In order for this membrane to be useful you will need to provide a distortion im
 
 **status: has not been audited, here be dragons, etc**
 
+### features
+
+##### intent of secure isolation
+(note: this module has not been audited for security)
+membrane-wrapped objects should always invoke the relevant distortion
+
+##### multiple membrane spaces
+the membrane will wrap/unwrap objects when passed across membrane space boundaries.
+If an object is created in space A, passed to space B, then to space C, and returned to space A, it will be given to space A unwrapped as a raw object.
+
+##### support for any object type
+the membrane is intended to support any type of javascript object (TypedArray instances, objects with prototype chains, Proxy instances). empty values (`null`, `undefined`) and non-object values (number, string) are passed through un-wrapped.
+
+##### set distortions per-object
+distortions can be set in two ways:
+- via the default handler for the MembraneSpace via the `createHandler` option.
+- overridden for a specific reference via the `membraneSpace.handlerForRef` WeakMap.
+
+Using these two approaches allows you to have a different distortion for a subset of the MembraneSpace's objects.
+
 
 ### example
 
@@ -16,8 +36,8 @@ const { Membrane } = require('cytoplasm')
 const createReadOnlyDistortion = require('cytoplasm/src/distortions/readOnly')
 
 const membrane = new Membrane()
-const graphA = membrane.makeObjectGraph({ label: 'a', createHandler: createReadOnlyDistortion })
-const graphB = membrane.makeObjectGraph({ label: 'b' })
+const graphA = membrane.makeMembraneSpace({ label: 'a', createHandler: createReadOnlyDistortion })
+const graphB = membrane.makeMembraneSpace({ label: 'b' })
 
 const objA = {
   value: 123,
@@ -27,7 +47,8 @@ const objAWrappedForB = membrane.bridge(objA, graphA, graphB)
 
 // original object is still mutable
 objA.value = 456
-// the specified readOnlyDistortion allows this, and the value is updated
+// the specified readOnlyDistortion allows the wrapped object to internally mutate itself
+// so the value is updated
 objAWrappedForB.set(13)
 // this assignment fails and throws an error under strict mode
 objAWrappedForB.value = 42

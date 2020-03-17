@@ -4,7 +4,7 @@
 
 const { isArray } = Array
 
-class ObjectGraph {
+class MembraneSpace {
   constructor ({ label, createHandler }) {
     this.rawToBridged = new WeakMap()
     this.handlerForRef = new WeakMap()
@@ -31,8 +31,8 @@ class Membrane {
     this.rawToOrigin = new WeakMap()
   }
 
-  makeObjectGraph ({ label, createHandler }) {
-    return new ObjectGraph({ label, createHandler })
+  makeMembraneSpace ({ label, createHandler }) {
+    return new MembraneSpace({ label, createHandler })
   }
 
   // if rawObj is not part of inGraph, should we explode?
@@ -163,7 +163,7 @@ function createHandlerFn (reflectFn, rawRef, inGraph, outGraph, bridge) {
   }
 }
 
-module.exports = { Membrane, ObjectGraph }
+module.exports = { Membrane, MembraneSpace }
 
 //
 // FlexibleProxy
