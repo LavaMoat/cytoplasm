@@ -1,10 +1,15 @@
 {
   "scripts": {
     "test": "node test/index.js",
-    "performance": "node perf/index.js"
+    "performance": "node perf/index.js",
+    "lib:intrinsics": "browserify node_modules/ses/src/intrinsics.js --standalone 'getIntrinsics' -t [ babelify --plugins [ @babel/plugin-transform-modules-commonjs ] ] > lib/getIntrinsics.js"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.8.3",
+    "babelify": "^10.0.0",
     "benchmark": "^2.1.4",
+    "browserify": "^16.5.0",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
     "observable-membrane": "^0.26.1",
     "standard": "^14.3.1",
@@ -15,5 +20,8 @@
   "main": "src/index.js",
   "repository": "git@github.com:kumavis/cytoplasm.git",
   "author": "kumavis <aaron@kumavis.me>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ses": "^0.7.3"
+  }
 }

@@ -2,6 +2,8 @@
 // e.g. fn.arguments
 'use strict'
 
+const { getIntrinsics } = require('../lib/getIntrinsics')
+
 const { isArray } = Array
 
 class MembraneSpace {
@@ -25,9 +27,9 @@ class MembraneSpace {
 }
 
 class Membrane {
-  constructor ({ debugMode } = {}) {
+  constructor ({ debugMode, primordials } = {}) {
     this.debugMode = debugMode
-    this.primordials = [Object, Object.prototype, Array, Array.prototype]
+    this.primordials = primordials || Object.values(getIntrinsics())
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
   }
