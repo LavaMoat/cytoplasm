@@ -27,7 +27,7 @@ class MembraneSpace {
 class Membrane {
   constructor ({ debugMode } = {}) {
     this.debugMode = debugMode
-    this.primordials = [Object, Object.prototype]
+    this.primordials = [Object, Object.prototype, Array, Array.prototype]
     this.bridgedToRaw = new WeakMap()
     this.rawToOrigin = new WeakMap()
   }
@@ -115,7 +115,12 @@ class Membrane {
       return true
     }
 
-    // Early exit if the object is an Array.
+    // primordials should not be wrapped
+    if (this.primordials.includes(value)) {
+      return true
+    }
+
+    // Early exit if the objectis an Array.
     if (isArray(value) === true) {
       return false
     }

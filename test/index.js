@@ -3,6 +3,7 @@
 const test = require('tape')
 const { Membrane } = require('../src/index')
 const createReadOnlyDistortion = require('../src/distortions/readOnly')
+const createAlwaysThrowDistortion = require('../src/distortions/alwaysThrow')
 
 test('basic - bridge', (t) => {
   const membrane = new Membrane()
@@ -76,6 +77,43 @@ test('basic - 3-side', (t) => {
 
   t.end()
 })
+
+test('attack - mutate through primordial', (t) => {
+  const membrane = new Membrane()
+
+  const graphA = membrane.makeMembraneSpace({ label: 'a' })
+  const graphB = membrane.makeMembraneSpace({ label: 'b' })
+
+  const objA = {
+    value: [],
+    Array,
+  }
+  // set objA.value's distortion to always throw
+  graphA.handlerForRef.set(objA.value, createAlwaysThrowDistortion())
+
+  const wrappedA = membrane.bridge(objA, graphA, graphB)
+
+  // ensure that direct calls to the array fail
+  try {
+    wrappedA.value.push(1)
+    t.fail('should have encountered an error')
+  } catch (err) {
+    // cant inspect the error or it will trigger more errors due to distortion
+    t.ok(err, 'got expected error')
+  }
+
+  // ensure primordial based calls also fail
+  try {
+    wrappedA.Array.prototype.push.call(wrappedA.value, 1)
+    t.fail('should have encountered an error')
+  } catch (err) {
+    // cant inspect the error or it will trigger more errors due to distortion
+    t.ok(err, 'got expected error')
+  }
+
+  t.end()
+})
+
 
 test('getter - throw custom Error', (t) => {
   const membrane = new Membrane()
