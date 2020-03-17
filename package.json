@@ -12,7 +12,6 @@
     "babelify": "^10.0.0",
     "benchmark": "^2.1.4",
     "browserify": "^16.5.0",
-    "core-js": "^3.6.4",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
     "observable-membrane": "^0.26.1",
     "ses": "^0.7.3",

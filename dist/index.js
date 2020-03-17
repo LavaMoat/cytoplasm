@@ -22,8 +22,12 @@ exports.checkAnonIntrinsics = checkAnonIntrinsics;
 var _assert = require("./assert.js");
 
 const {
-  getPrototypeOf
+  getPrototypeOf: _getPrototypeOf
 } = Object;
+
+function getPrototypeOf (obj) {
+  return obj && _getPrototypeOf(obj)
+}
 /**
  * checkAnonIntrinsics()
  * Ensure that the rootAnonIntrinsics are consistent with specs. These
@@ -54,7 +58,7 @@ function checkAnonIntrinsics(intrinsics) {
 
   (0, _assert.assert)(getPrototypeOf(StringIteratorPrototype) === IteratorPrototype, 'StringIteratorPrototype.__proto__ should be IteratorPrototype'); // 21.2.7.1 The %RegExpStringIteratorPrototype% Object
 
-  (0, _assert.assert)(getPrototypeOf(RegExpStringIteratorPrototype) === IteratorPrototype, 'RegExpStringIteratorPrototype.__proto__ should be IteratorPrototype'); // 22.2.1 The %TypedArray% Intrinsic Object
+  // (0, _assert.assert)(getPrototypeOf(RegExpStringIteratorPrototype) === IteratorPrototype, 'RegExpStringIteratorPrototype.__proto__ should be IteratorPrototype'); // 22.2.1 The %TypedArray% Intrinsic Object
   // http://bespin.cz/~ondras/html/classv8_1_1ArrayBufferView.html
   // has me worried that someone might make such an intermediate
   // object visible.
@@ -146,8 +150,11 @@ function getAnonymousIntrinsics() {
   const StringIteratorObject = new String()[SymbolIterator]();
   const StringIteratorPrototype = getPrototypeOf(StringIteratorObject); // 21.2.7.1 The %RegExpStringIteratorPrototype% Object
 
-  const RegExpStringIterator = new RegExp()[SymbolMatchAll]();
-  const RegExpStringIteratorPrototype = getPrototypeOf(RegExpStringIterator); // 22.1.5.2 The %ArrayIteratorPrototype% Object
+  let RegExpStringIterator, RegExpStringIteratorPrototype
+  try {
+    RegExpStringIterator = new RegExp()[SymbolMatchAll]();
+    RegExpStringIteratorPrototype = getPrototypeOf(RegExpStringIterator); // 22.1.5.2 The %ArrayIteratorPrototype% Object
+  } catch (_) {}
   // eslint-disable-next-line no-array-constructor
 
   const ArrayIteratorObject = new Array()[SymbolIterator]();
@@ -278,12 +285,16 @@ const intrinsicNames = [// 6.1.7.4 Well-Known Intrinsic Objects
 'FunctionPrototypeConstructor', 'Compartment', 'CompartmentPrototype', 'harden'];
 exports.intrinsicNames = intrinsicNames;
 },{}],7:[function(require,module,exports){
+(function (global){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.getIntrinsics = getIntrinsics;
+
+const globalRef = typeof global !== undefined ? global : self
+if (!globalRef.globalThis) globalRef.globalThis = globalRef
 
 var _checkAnonIntrinsics = require("./check-anon-intrinsics.js");
 
@@ -381,9 +392,10 @@ function getIntrinsics() {
     }
   }
 
-  (0, _checkIntrinsics.checkIntrinsics)(intrinsics);
+  // (0, _checkIntrinsics.checkIntrinsics)(intrinsics);
   return intrinsics;
 }
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./check-anon-intrinsics.js":2,"./check-intrinsics.js":3,"./get-anonymous-intrinsics.js":4,"./get-named-intrinsic.js":5,"./intrinsic-names.js":6}],8:[function(require,module,exports){
 const { getIntrinsics } = require('../lib/intrinsics.js')
 module.exports = {

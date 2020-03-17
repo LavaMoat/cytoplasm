@@ -1,7 +1,5 @@
 'use strict'
 
-// apply polyfills (for getIntrinsics)
-require('core-js')
 const test = require('tape')
 const { Membrane } = require('../src/index')
 const createReadOnlyDistortion = require('../src/distortions/readOnly')
