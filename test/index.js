@@ -124,6 +124,22 @@ function runTests (test, { Membrane }) {
     t.end()
   })
 
+  test('alwaysUnwrap - should provide foreign objects unwrapped', (t) => {
+    const membrane = new Membrane()
+
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
+
+    const objA = { value: 42 }
+    const objB = membrane.bridge(objA, graphA, graphB)
+    const objC = membrane.bridge(objA, graphA, graphC)
+
+    t.equal(objA, objB, 'MembraneSpace "alwaysUnwrap: true" yields the raw value')
+    t.equal(objA, objC, 'MembraneSpace "alwaysUnwrap: false" DOES NOT yield the raw value')
+
+    t.end()
+  })
 
   test('getter - throw custom Error', (t) => {
     const membrane = new Membrane()
