@@ -288,13 +288,12 @@ exports.intrinsicNames = intrinsicNames;
 (function (global){
 "use strict";
 
+const globalThis = typeof global !== undefined ? global : self
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.getIntrinsics = getIntrinsics;
-
-const globalRef = typeof global !== undefined ? global : self
-if (!globalRef.globalThis) globalRef.globalThis = globalRef
 
 var _checkAnonIntrinsics = require("./check-anon-intrinsics.js");
 
@@ -403,7 +402,8 @@ module.exports = {
     try {
       return getIntrinsics()
     } catch (err) {
-      throw new Error(`Cytoplasm failed to gather intrinsics. Please specify a "primordials" option to the Membrane constructor, apply core-js polyfills, or use node v12 or higher.\n${err.stack}`)
+      const subErrMsg = err.stack || err.message || err
+      throw new Error(`Cytoplasm failed to gather intrinsics. Please specify a "primordials" option to the Membrane constructor, apply core-js polyfills, or use node v12 or higher.\n${subErrMsg}`)
     }
   }
 }
