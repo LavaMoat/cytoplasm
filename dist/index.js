@@ -285,7 +285,6 @@ const intrinsicNames = [// 6.1.7.4 Well-Known Intrinsic Objects
 'FunctionPrototypeConstructor', 'Compartment', 'CompartmentPrototype', 'harden'];
 exports.intrinsicNames = intrinsicNames;
 },{}],7:[function(require,module,exports){
-(function (global){
 "use strict";
 
 const globalThis = typeof global !== undefined ? global : self
@@ -394,7 +393,6 @@ function getIntrinsics() {
   // (0, _checkIntrinsics.checkIntrinsics)(intrinsics);
   return intrinsics;
 }
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./check-anon-intrinsics.js":2,"./check-intrinsics.js":3,"./get-anonymous-intrinsics.js":4,"./get-named-intrinsic.js":5,"./intrinsic-names.js":6}],8:[function(require,module,exports){
 const { getIntrinsics } = require('../lib/intrinsics.js')
 module.exports = {
