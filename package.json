@@ -3,7 +3,7 @@
     "test": "node test/index.js",
     "performance": "node perf/index.js",
     "lib": "babel --plugins @babel/plugin-transform-modules-commonjs node_modules/ses/src/{assert,*intrinsic*}.js --out-dir lib/",
-    "dist": "browserify --standalone 'Membrane' src/index.js > dist/index.js"
+    "dist": "browserify --no-detect-globals --standalone 'Membrane' src/index.js > dist/index.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
