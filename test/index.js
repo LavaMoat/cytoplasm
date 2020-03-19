@@ -136,7 +136,7 @@ function runTests (test, { Membrane }) {
     const objC = membrane.bridge(objA, graphA, graphC)
 
     t.equal(objA, objB, 'MembraneSpace "alwaysUnwrap: true" yields the raw value')
-    t.equal(objA, objC, 'MembraneSpace "alwaysUnwrap: false" DOES NOT yield the raw value')
+    t.notEqual(objA, objC, 'MembraneSpace "alwaysUnwrap: false" DOES NOT yield the raw value')
 
     t.end()
   })
