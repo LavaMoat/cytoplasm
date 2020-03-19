@@ -415,7 +415,8 @@ const { getIntrinsics } = require('./getIntrinsics')
 const { isArray } = Array
 
 class MembraneSpace {
-  constructor ({ label, createHandler }) {
+  constructor ({ label, createHandler, dangerouslyAlwaysUnwrap }) {
+    this.alwaysUnwrap = Boolean(dangerouslyAlwaysUnwrap)
     this.rawToBridged = new WeakMap()
     this.handlerForRef = new WeakMap()
     this.label = label
@@ -442,8 +443,8 @@ class Membrane {
     this.rawToOrigin = new WeakMap()
   }
 
-  makeMembraneSpace ({ label, createHandler }) {
-    return new MembraneSpace({ label, createHandler })
+  makeMembraneSpace (opts) {
+    return new MembraneSpace(opts)
   }
 
   // if rawObj is not part of inGraph, should we explode?
@@ -480,6 +481,11 @@ class Membrane {
     //
     // wrap for ref for "out" graph
     //
+
+    // if "out" graph is set to "alwaysUnwrap", deliver unwrapped
+    if (outGraph.alwaysUnwrap) {
+      return rawRef
+    }
 
     // if this ref originates in the "out" graph, deliver unwrapped
     if (originGraph === outGraph) {
