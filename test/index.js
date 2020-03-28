@@ -122,6 +122,23 @@ function runTests (test, { Membrane }) {
     t.end()
   })
 
+  test('alwaysUnwrap - node Buffer test', (t) => {
+    const membrane = new Membrane()
+
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
+
+    const obj1A = Buffer.from('abcd', 'hex')
+    const obj1B = membrane.bridge(obj1A, graphA, graphB)
+    t.ok(Buffer.isBuffer(obj1B), 'MembraneSpace "alwaysUnwrap: true" does yield a raw buffer')
+
+    const obj2B = Buffer.from('1234', 'hex')
+    const obj2A = membrane.bridge(obj2B, graphB, graphA)
+    t.notOk(Buffer.isBuffer(obj2A), 'MembraneSpace "alwaysUnwrap: false" does NOT yield a raw buffer')
+
+    t.end()
+  })
+
   test('getter - throw custom Error', (t) => {
     const membrane = new Membrane()
 
