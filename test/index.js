@@ -14,7 +14,6 @@ function testWithLabelPrefix (prefix) {
 }
 
 function runTests (test, { Membrane }) {
-
   test('basic - bridge', (t) => {
     const membrane = new Membrane()
 
@@ -51,7 +50,7 @@ function runTests (test, { Membrane }) {
       membrane,
       graphA,
       graphB,
-      graphC,
+      graphC
     })
   })
 
@@ -66,7 +65,7 @@ function runTests (test, { Membrane }) {
       membrane,
       graphA,
       graphB,
-      graphC,
+      graphC
     })
   })
 
@@ -78,7 +77,7 @@ function runTests (test, { Membrane }) {
 
     const objA = {
       value: [],
-      Array,
+      Array
     }
     // set objA.value's distortion to always throw
     graphA.handlerForRef.set(objA.value, createAlwaysThrowDistortion())
@@ -789,11 +788,9 @@ function runTests (test, { Membrane }) {
     t.ok(error, 'saw expected error')
     t.end()
   })
-
 }
 
 function test3MembraneRoundtrip (t, { membrane, graphA, graphB, graphC }) {
-
   // like a `require` fn implementation crossing membrane protected package boundaries
   function getObjectFromFor (rawObj, originGraph, destinationGraph) {
     return membrane.bridge(rawObj, originGraph, destinationGraph)
