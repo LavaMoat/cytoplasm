@@ -123,7 +123,13 @@ class Membrane {
       return true
     }
 
-    // Check for non-objects
+    // early exit if the object is an Array instance (common)
+    if (isArray(value) && value !== Array.prototype) {
+      // cant skip bridge
+      return false
+    }
+
+    // check for non-objects
     const valueType = typeof value
     if (valueType !== 'object' && valueType !== 'function') {
       return true
@@ -134,11 +140,7 @@ class Membrane {
       return true
     }
 
-    // Early exit if the objectis an Array.
-    if (isArray(value) === true) {
-      return false
-    }
-
+    // otherwise needs to be wrapped
     return false
   }
 }
