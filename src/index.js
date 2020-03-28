@@ -76,6 +76,12 @@ class Membrane {
 
     // if "out" graph is set to "alwaysUnwrap", deliver unwrapped
     if (outGraph.alwaysUnwrap) {
+      // workaround for the arguments array which is an unwrapped array
+      // with wrapped elements
+      const isRawArgumentsArray = (inRef === rawRef && Array.isArray(rawRef))
+      if (isRawArgumentsArray) {
+        rawRef = rawRef.map(childRef => this.bridge(childRef, inGraph, outGraph))
+      }
       return rawRef
     }
 

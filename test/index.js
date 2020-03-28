@@ -47,45 +47,27 @@ function runTests (test, { Membrane }) {
     const graphB = membrane.makeMembraneSpace({ label: 'b' })
     const graphC = membrane.makeMembraneSpace({ label: 'c' })
 
-    function getObjectFromFor (rawObj, originGraph, destinationGraph) {
-      return membrane.bridge(rawObj, originGraph, destinationGraph)
-    }
+    test3MembraneRoundtrip(t, {
+      membrane,
+      graphA,
+      graphB,
+      graphC,
+    })
+  })
 
-    const objA = (() => {
-      const obj = {}
-      return {
-        name: 'a',
-        get: () => {
-          return obj
-        },
-        check: (target) => obj === target
-      }
-    })()
-    const objB = (() => {
-      const localA = getObjectFromFor(objA, graphA, graphB)
-      return {
-        name: 'b',
-        get: () => localA.get()
-      }
-    })()
-    const objC = (() => {
-      const localA = getObjectFromFor(objA, graphA, graphC)
-      const localB = getObjectFromFor(objB, graphB, graphC)
-      return {
-        name: 'c',
-        testLocal: () => localA.get() === localB.get(),
-        testRemote: () => {
-          const ref = localB.get()
-          return localA.check(ref)
-        }
-      }
-    })()
+  test('alwaysUnwrap - 3-side', (t) => {
+    const membrane = new Membrane()
 
-    t.notEqual(objA.get(), objB.get(), 'manual direct comparison')
-    t.ok(objC.testLocal(), 'obj-c test local')
-    t.ok(objC.testRemote(), 'obj-c test remote')
+    const graphA = membrane.makeMembraneSpace({ label: 'a', dangerouslyAlwaysUnwrap: true })
+    const graphB = membrane.makeMembraneSpace({ label: 'b' })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
 
-    t.end()
+    test3MembraneRoundtrip(t, {
+      membrane,
+      graphA,
+      graphB,
+      graphC,
+    })
   })
 
   test('attack - mutate through primordial', (t) => {
@@ -808,4 +790,53 @@ function runTests (test, { Membrane }) {
     t.end()
   })
 
+}
+
+function test3MembraneRoundtrip (t, { membrane, graphA, graphB, graphC }) {
+
+  // like a `require` fn implementation crossing membrane protected package boundaries
+  function getObjectFromFor (rawObj, originGraph, destinationGraph) {
+    return membrane.bridge(rawObj, originGraph, destinationGraph)
+  }
+
+  // round trip api
+  const objA = (() => {
+    const obj = {}
+    return {
+      name: 'a',
+      get: () => {
+        return obj
+      },
+      check: (target) => {
+        return obj === target
+      }
+    }
+  })()
+  // proxy for `get`
+  const objB = (() => {
+    const localA = getObjectFromFor(objA, graphA, graphB)
+    return {
+      name: 'b',
+      get: () => localA.get()
+    }
+  })()
+  // composes A + B to check expectations
+  const objC = (() => {
+    const localA = getObjectFromFor(objA, graphA, graphC)
+    const localB = getObjectFromFor(objB, graphB, graphC)
+    return {
+      name: 'c',
+      testLocal: () => localA.get() === localB.get(),
+      testRemote: () => {
+        const ref = localB.get()
+        return localA.check(ref)
+      }
+    }
+  })()
+
+  t.notEqual(objA.get(), objB.get(), 'manual direct comparison')
+  t.ok(objC.testLocal(), 'obj-c test local')
+  t.ok(objC.testRemote(), 'obj-c test remote')
+
+  t.end()
 }
