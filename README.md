@@ -22,6 +22,8 @@ If an object is created in space A, passed to space B, then to space C, and retu
 the membrane is intended to support any type of javascript object (TypedArray instances, objects with prototype chains, Proxy instances). empty values (`null`, `undefined`) and non-object values (number, string) are passed through un-wrapped. Primordials (`Object`, `Object.prototype`, etc) are also passed through unwrapped.
 
 ##### set distortions per-object
+distortions are hooks into interactions with objects across MembraneSpace boundaries. The distortions are set at the object's origin MebraneSpace. The distortions are applied when the object is referenced in another MembraneSpace. The distortions are not applied in the origin MembraneSpace, as the object is a raw (unwrapped) reference there. The distortions will not be applied in MembraneSpaces that specify the option `{ dangerouslyAlwaysUnwrap: true }`.
+
 distortions can be set in two ways:
 - via the default handler for the MembraneSpace via the `createHandler` option.
 - overridden for a specific reference via the `membraneSpace.handlerForRef` WeakMap.
