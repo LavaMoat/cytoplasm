@@ -21,6 +21,7 @@
     "observable-membrane": "^0.26.1",
     "ses": "^0.7.3",
     "standard": "^14.3.3",
+    "tap-spec": "^5.0.0",
     "tape": "^4.11.0"
   },
   "name": "cytoplasm",
