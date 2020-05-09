@@ -100,23 +100,23 @@ function runTests (test, { Membrane }) {
     const Class = membrane.bridge(A, graphA, graphX)
     const inst = new Class()
 
-    const originSpace = getOriginSpace(membrane, inst)
+    const originSpace = membrane.getOriginSpace(inst)
     t.equal(originSpace, graphC, 'instance origin from deepest class constructor')
 
-    t.equal(getOriginSpace(membrane, inst), graphC, 'instance origin from deepest class constructor')
-    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(membrane.getOriginSpace(inst), graphC, 'instance origin from deepest class constructor')
+    t.equal(membrane.isWrapped(inst), true, 'instance is wrapped')
     t.equal(inst instanceof Class, true, 'instance of Class class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromC), graphC, 'instance origin from deepest class constructor')
-    t.equal(isWrapped(membrane, thisFromC), false, 'C saw UNwrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromC), graphC, 'instance origin from deepest class constructor')
+    t.equal(membrane.isWrapped(thisFromC), false, 'C saw UNwrapped instance')
     t.equal(thisFromC instanceof C, true, 'instance of C class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromB), graphC, 'instance origin from deepest class constructor')
-    t.equal(isWrapped(membrane, thisFromB), true, 'B saw wrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromB), graphC, 'instance origin from deepest class constructor')
+    t.equal(membrane.isWrapped(thisFromB), true, 'B saw wrapped instance')
     t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromA), graphC, 'instance origin from deepest class constructor')
-    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromA), graphC, 'instance origin from deepest class constructor')
+    t.equal(membrane.isWrapped(thisFromA), true, 'A saw wrapped instance')
     t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
 
     t.end()
@@ -152,20 +152,20 @@ function runTests (test, { Membrane }) {
     const Class = membrane.bridge(A, graphA, graphX)
     const inst = new Class()
 
-    t.equal(getOriginSpace(membrane, inst), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(membrane.getOriginSpace(inst), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(inst), true, 'instance is wrapped')
     t.equal(inst instanceof Class, true, 'instance of Class class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromC), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, thisFromC), true, 'C saw wrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromC), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(thisFromC), true, 'C saw wrapped instance')
     t.equal(thisFromC instanceof C, true, 'instance of C class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromB), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, thisFromB), false, 'B saw UNwrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromB), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(thisFromB), false, 'B saw UNwrapped instance')
     t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromA), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromA), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(thisFromA), true, 'A saw wrapped instance')
     t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
 
     t.end()
@@ -198,16 +198,16 @@ function runTests (test, { Membrane }) {
     const Class = membrane.bridge(A, graphA, graphX)
     const inst = new Class()
 
-    t.equal(getOriginSpace(membrane, inst), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(membrane.getOriginSpace(inst), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(inst), true, 'instance is wrapped')
     t.equal(inst instanceof Class, true, 'instance of Class class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromB), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, thisFromB), false, 'B saw UNwrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromB), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(thisFromB), false, 'B saw UNwrapped instance')
     t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
 
-    t.equal(getOriginSpace(membrane, thisFromA), graphB, 'instance origin from first non-class constructor')
-    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(membrane.getOriginSpace(thisFromA), graphB, 'instance origin from first non-class constructor')
+    t.equal(membrane.isWrapped(thisFromA), true, 'A saw wrapped instance')
     t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
 
     t.end()
@@ -1041,14 +1041,4 @@ function test3MembraneRoundtrip (t, { membrane, graphA, graphB, graphC }) {
   t.ok(objC.testRemote(), 'obj-c test remote')
 
   t.end()
-}
-
-function getOriginSpace (membrane, ref) {
-  const rawRef = membrane.bridgedToRaw.get(ref) || ref
-  const originSpace = membrane.rawToOrigin.get(rawRef)
-  return originSpace
-}
-
-function isWrapped (membrane, ref) {
-  return membrane.bridgedToRaw.has(ref)
 }
