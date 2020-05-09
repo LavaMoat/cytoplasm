@@ -1,6 +1,7 @@
 'use strict'
 
 const test = require('tape')
+const { inherits } = require('util')
 const srcExports = require('../src/index')
 const distExports = require('../dist/index')
 const createReadOnlyDistortion = require('../src/distortions/readOnly')
@@ -68,6 +69,193 @@ function runTests (test, { Membrane }) {
       graphC
     })
   })
+
+  test('class - instance origin space with class chain', (t) => {
+    const membrane = new Membrane()
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b' })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
+    const graphX = membrane.makeMembraneSpace({ label: 'x' })
+
+    let thisFromC, thisFromB, thisFromA
+
+    class C {
+      constructor () {
+        thisFromC = this
+      }
+    }
+    class B extends membrane.bridge(C, graphC, graphB) {
+      constructor () {
+        super()
+        thisFromB = this
+      }
+    }
+    class A extends membrane.bridge(B, graphB, graphA) {
+      constructor () {
+        super()
+        thisFromA = this
+      }
+    }
+
+    const Class = membrane.bridge(A, graphA, graphX)
+    const inst = new Class()
+
+    const originSpace = getOriginSpace(membrane, inst)
+    t.equal(originSpace, graphC, 'instance origin from deepest class constructor')
+
+    t.equal(getOriginSpace(membrane, inst), graphC, 'instance origin from deepest class constructor')
+    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(inst instanceof Class, true, 'instance of Class class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromC), graphC, 'instance origin from deepest class constructor')
+    t.equal(isWrapped(membrane, thisFromC), false, 'C saw UNwrapped instance')
+    t.equal(thisFromC instanceof C, true, 'instance of C class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromB), graphC, 'instance origin from deepest class constructor')
+    t.equal(isWrapped(membrane, thisFromB), true, 'B saw wrapped instance')
+    t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromA), graphC, 'instance origin from deepest class constructor')
+    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
+
+    t.end()
+  })
+
+  test('class - instance origin space with mixed chain', (t) => {
+    const membrane = new Membrane()
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b' })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
+    const graphX = membrane.makeMembraneSpace({ label: 'x' })
+
+    let thisFromC, thisFromB, thisFromA
+
+    function C () {
+      thisFromC = this
+    }
+
+    const CinB = membrane.bridge(C, graphC, graphB)
+    function B () {
+      thisFromB = this
+      CinB.call(this)
+    }
+    inherits(B, CinB)
+
+    class A extends membrane.bridge(B, graphB, graphA) {
+      constructor () {
+        super()
+        thisFromA = this
+      }
+    }
+
+    const Class = membrane.bridge(A, graphA, graphX)
+    const inst = new Class()
+
+    t.equal(getOriginSpace(membrane, inst), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(inst instanceof Class, true, 'instance of Class class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromC), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, thisFromC), true, 'C saw wrapped instance')
+    t.equal(thisFromC instanceof C, true, 'instance of C class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromB), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, thisFromB), false, 'B saw UNwrapped instance')
+    t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromA), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
+
+    t.end()
+  })
+
+
+  test('class - instance origin space with builtin in chain', (t) => {
+    const membrane = new Membrane()
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b' })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
+    const graphX = membrane.makeMembraneSpace({ label: 'x' })
+
+    let thisFromB, thisFromA
+
+    const C = Array
+    class B extends membrane.bridge(C, graphC, graphB) {
+      constructor () {
+        super()
+        thisFromB = this
+      }
+    }
+    class A extends membrane.bridge(B, graphB, graphA) {
+      constructor () {
+        super()
+        thisFromA = this
+      }
+    }
+
+    const Class = membrane.bridge(A, graphA, graphX)
+    const inst = new Class()
+
+    t.equal(getOriginSpace(membrane, inst), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, inst), true, 'instance is wrapped')
+    t.equal(inst instanceof Class, true, 'instance of Class class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromB), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, thisFromB), false, 'B saw UNwrapped instance')
+    t.equal(thisFromB instanceof B, true, 'instance of B class constructor')
+
+    t.equal(getOriginSpace(membrane, thisFromA), graphB, 'instance origin from first non-class constructor')
+    t.equal(isWrapped(membrane, thisFromA), true, 'A saw wrapped instance')
+    t.equal(thisFromA instanceof A, true, 'instance of A class constructor')
+
+    t.end()
+  })
+
+  // this test fails because dangerouslyAlwaysUnwrap is fundamentally broken
+  // test('alwaysUnwrap - lavamoat Transform subclass test', (t) => {
+  //   const membrane = new Membrane()
+  //   // const graphA = membrane.makeMembraneSpace({ label: 'a', dangerouslyAlwaysUnwrap: false })
+  //   const graphA = membrane.makeMembraneSpace({ label: 'a', dangerouslyAlwaysUnwrap: true })
+  //   const graphB = membrane.makeMembraneSpace({ label: 'b' })
+
+  //   function Original () {
+  //     // console.log('this wrapped', !!this.__isWrapped)
+  //     // console.log('constructor wrapped', !!this.constructor.__isWrapped)
+  //     // console.log('prototype wrapped', !!Object.getPrototypeOf(this).__isWrapped)
+  //     // console.log('$$ prototype prototype constructor matches', Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor === Original)
+  //     console.log('\n$$', membrane.debug(this), '\n')
+  //     console.log('\n$$', membrane.debug(Original), '\n')
+
+  //     if (!(this instanceof Original)) {
+  //       console.log('!! constructor redirect')
+  //       return new Original()
+  //     }
+  //   }
+  //   const Copy = membrane.bridge(Original, graphA, graphB)
+
+  //   console.log('== define NewClass')
+  //   class NewClass extends Copy {
+  //     constructor () {
+  //       super()
+  //       console.log('\n$$ NewClass', membrane.debug(this), '\n')
+  //     }
+  //   }
+  //   console.log('-- define NewClass')
+
+  //   t.equal(Object.getPrototypeOf(NewClass.prototype), Copy.prototype, 'constructor prototype matches expected')
+
+  //   console.log('== instantiate NewClass')
+  //   const inst = new NewClass()
+  //   console.log('-- instantiate NewClass')
+
+  //   t.equal(inst.constructor.name, 'NewClass')
+  //   // t.equal(Object.getPrototypeOf(inst).constructor.name, 'NewClass')
+  //   // t.equal(Object.getPrototypeOf(Object.getPrototypeOf(inst)).constructor.name, 'Original')
+
+  //   t.end()
+  // })
 
   test('attack - mutate through primordial', (t) => {
     const membrane = new Membrane()
@@ -174,7 +362,7 @@ function runTests (test, { Membrane }) {
   })
 
   //
-  // kowtow tests borrowed from kowtow module
+  // kowtow tests borrowed from kowtow package
   // primarily to check that copies behave as expected
   // assertions checking that originals were unmodified have been disabled
   //
@@ -853,4 +1041,14 @@ function test3MembraneRoundtrip (t, { membrane, graphA, graphB, graphC }) {
   t.ok(objC.testRemote(), 'obj-c test remote')
 
   t.end()
+}
+
+function getOriginSpace (membrane, ref) {
+  const rawRef = membrane.bridgedToRaw.get(ref) || ref
+  const originSpace = membrane.rawToOrigin.get(rawRef)
+  return originSpace
+}
+
+function isWrapped (membrane, ref) {
+  return membrane.bridgedToRaw.has(ref)
 }
