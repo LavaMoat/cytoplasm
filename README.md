@@ -56,6 +56,30 @@ objAWrappedForB.set(13)
 objAWrappedForB.value = 42
 ```
 
+### class instance origin space
+
+The origin space of an instance of a class with cross-space protoype chain is somewhat complicated, due to differences in class constructors vs function constructors, as well as the Builtins.
+The instance ends up being claimed by the first constructor it is exposed to. Since class constructors cant access `this` until they've called `super(...)`, ownership is pushed further down the chain. The function constructors can access `this` immediately and will claim the instance. Builtins skip membrane wrapping and so do not trigger a claim on `this`.
+
+examples:
+
+```
+inst
+class A
+class B
+class C <-- origin space
+Object
+```
+
+```
+inst
+class A
+function B <-- origin space
+function C
+Object
+```
+
+
 ### comparison to other implementations
 
 repo  | n-sides  | audit
