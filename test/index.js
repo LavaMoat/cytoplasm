@@ -257,6 +257,40 @@ function runTests (test, { Membrane }) {
   //   t.end()
   // })
 
+  test('alwaysUnwrap - should provide foreign objects unwrapped', (t) => {
+    const membrane = new Membrane()
+
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
+    const graphC = membrane.makeMembraneSpace({ label: 'c' })
+
+    const objA = { value: 42 }
+    const objB = membrane.bridge(objA, graphA, graphB)
+    const objC = membrane.bridge(objA, graphA, graphC)
+
+    t.equal(objA, objB, 'MembraneSpace "alwaysUnwrap: true" yields the raw value')
+    t.notEqual(objA, objC, 'MembraneSpace "alwaysUnwrap: false" DOES NOT yield the raw value')
+
+    t.end()
+  })
+
+  test('alwaysUnwrap - node Buffer test', (t) => {
+    const membrane = new Membrane()
+
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
+
+    const obj1A = Buffer.from('abcd', 'hex')
+    const obj1B = membrane.bridge(obj1A, graphA, graphB)
+    t.ok(Buffer.isBuffer(obj1B), 'MembraneSpace "alwaysUnwrap: true" does yield a raw buffer')
+
+    const obj2B = Buffer.from('1234', 'hex')
+    const obj2A = membrane.bridge(obj2B, graphB, graphA)
+    t.notOk(Buffer.isBuffer(obj2A), 'MembraneSpace "alwaysUnwrap: false" does NOT yield a raw buffer')
+
+    t.end()
+  })
+
   test('attack - mutate through primordial', (t) => {
     const membrane = new Membrane()
 
@@ -289,40 +323,6 @@ function runTests (test, { Membrane }) {
       // cant inspect the error or it will trigger more errors due to distortion
       t.ok(err, 'got expected error')
     }
-
-    t.end()
-  })
-
-  test('alwaysUnwrap - should provide foreign objects unwrapped', (t) => {
-    const membrane = new Membrane()
-
-    const graphA = membrane.makeMembraneSpace({ label: 'a' })
-    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
-    const graphC = membrane.makeMembraneSpace({ label: 'c' })
-
-    const objA = { value: 42 }
-    const objB = membrane.bridge(objA, graphA, graphB)
-    const objC = membrane.bridge(objA, graphA, graphC)
-
-    t.equal(objA, objB, 'MembraneSpace "alwaysUnwrap: true" yields the raw value')
-    t.notEqual(objA, objC, 'MembraneSpace "alwaysUnwrap: false" DOES NOT yield the raw value')
-
-    t.end()
-  })
-
-  test('alwaysUnwrap - node Buffer test', (t) => {
-    const membrane = new Membrane()
-
-    const graphA = membrane.makeMembraneSpace({ label: 'a' })
-    const graphB = membrane.makeMembraneSpace({ label: 'b', dangerouslyAlwaysUnwrap: true })
-
-    const obj1A = Buffer.from('abcd', 'hex')
-    const obj1B = membrane.bridge(obj1A, graphA, graphB)
-    t.ok(Buffer.isBuffer(obj1B), 'MembraneSpace "alwaysUnwrap: true" does yield a raw buffer')
-
-    const obj2B = Buffer.from('1234', 'hex')
-    const obj2A = membrane.bridge(obj2B, graphB, graphA)
-    t.notOk(Buffer.isBuffer(obj2A), 'MembraneSpace "alwaysUnwrap: false" does NOT yield a raw buffer')
 
     t.end()
   })
