@@ -1,7 +1,8 @@
 'use strict'
 
-const test = require('tape')
 const { inherits } = require('util')
+const crypto = require('crypto')
+const test = require('tape')
 const srcExports = require('../src/index')
 const distExports = require('../dist/index')
 const createReadOnlyDistortion = require('../src/distortions/readOnly')
@@ -213,50 +214,6 @@ function runTests (test, { Membrane }) {
     t.end()
   })
 
-  // this test fails because dangerouslyAlwaysUnwrap is fundamentally broken
-  // test('alwaysUnwrap - lavamoat Transform subclass test', (t) => {
-  //   const membrane = new Membrane()
-  //   // const graphA = membrane.makeMembraneSpace({ label: 'a', dangerouslyAlwaysUnwrap: false })
-  //   const graphA = membrane.makeMembraneSpace({ label: 'a', dangerouslyAlwaysUnwrap: true })
-  //   const graphB = membrane.makeMembraneSpace({ label: 'b' })
-
-  //   function Original () {
-  //     // console.log('this wrapped', !!this.__isWrapped)
-  //     // console.log('constructor wrapped', !!this.constructor.__isWrapped)
-  //     // console.log('prototype wrapped', !!Object.getPrototypeOf(this).__isWrapped)
-  //     // console.log('$$ prototype prototype constructor matches', Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor === Original)
-  //     console.log('\n$$', membrane.debug(this), '\n')
-  //     console.log('\n$$', membrane.debug(Original), '\n')
-
-  //     if (!(this instanceof Original)) {
-  //       console.log('!! constructor redirect')
-  //       return new Original()
-  //     }
-  //   }
-  //   const Copy = membrane.bridge(Original, graphA, graphB)
-
-  //   console.log('== define NewClass')
-  //   class NewClass extends Copy {
-  //     constructor () {
-  //       super()
-  //       console.log('\n$$ NewClass', membrane.debug(this), '\n')
-  //     }
-  //   }
-  //   console.log('-- define NewClass')
-
-  //   t.equal(Object.getPrototypeOf(NewClass.prototype), Copy.prototype, 'constructor prototype matches expected')
-
-  //   console.log('== instantiate NewClass')
-  //   const inst = new NewClass()
-  //   console.log('-- instantiate NewClass')
-
-  //   t.equal(inst.constructor.name, 'NewClass')
-  //   // t.equal(Object.getPrototypeOf(inst).constructor.name, 'NewClass')
-  //   // t.equal(Object.getPrototypeOf(Object.getPrototypeOf(inst)).constructor.name, 'Original')
-
-  //   t.end()
-  // })
-
   test('alwaysUnwrap - should provide foreign objects unwrapped', (t) => {
     const membrane = new Membrane()
 
@@ -287,6 +244,60 @@ function runTests (test, { Membrane }) {
     const obj2B = Buffer.from('1234', 'hex')
     const obj2A = membrane.bridge(obj2B, graphB, graphA)
     t.notOk(Buffer.isBuffer(obj2A), 'MembraneSpace "alwaysUnwrap: false" does NOT yield a raw buffer')
+
+    t.end()
+  })
+
+  test('passthroughFilter - typed array workaround', (t) => {
+    const membrane = new Membrane({ debugMode: true })
+    const graphX = membrane.makeMembraneSpace({ label: 'x' })
+
+    const TypedArray = Reflect.getPrototypeOf(Uint8Array)
+    function allowTypedArrays (rawRef) {
+      return rawRef instanceof TypedArray
+    }
+
+    function setupEnv () {
+      return {
+        Buffer: defineInSpace(createSpace('buffer'), Buffer),
+        crypto: defineInSpace(createSpace('crypto', { passthroughFilter: allowTypedArrays }), crypto),
+      }
+    }
+
+    const getInput = defineInSpace(createSpace('a'), ({ Buffer }) => {
+      return Buffer.from('haay wuurl', 'utf8')
+    })
+
+    const performHash = defineInSpace(createSpace('b'), ({ Buffer, crypto }, input) => {
+      if (!Buffer.isBuffer(input)) throw new Error('expected a buffer for input')
+      return crypto.createHash('sha256').update(input).digest()
+    })
+
+    function program (env) {
+      const input = getInput(env)
+      return performHash(env, input)
+    }
+
+    // test util
+    function createSpace (label, opts) {
+      return membrane.makeMembraneSpace({ label, ...opts })
+    }
+
+    function defineInSpace (originSpace, value) {
+      return membrane.bridge(value, originSpace, graphX)
+    }
+
+    const execute = () => {
+      const env = setupEnv()
+      return program(env)
+    }
+
+    try {
+      const result = execute()
+      t.equal(result.toString('hex'), 'fb1520a08f1bc43831d0000dc76f6b0f027bafd36c55b1f43fc54c60c2f831da')
+    } catch (err) {
+      t.fail(`should not fail: ${err.message}`)
+    }
 
     t.end()
   })

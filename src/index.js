@@ -7,12 +7,13 @@ const { getIntrinsics } = require('./getIntrinsics')
 const { isArray } = Array
 
 class MembraneSpace {
-  constructor ({ label, createHandler, dangerouslyAlwaysUnwrap }) {
+  constructor ({ label, createHandler, dangerouslyAlwaysUnwrap, passthroughFilter }) {
     this.alwaysUnwrap = Boolean(dangerouslyAlwaysUnwrap)
     this.rawToBridged = new WeakMap()
     this.handlerForRef = new WeakMap()
     this.label = label
     this.createHandler = createHandler || (() => Reflect)
+    this.passthroughFilter = passthroughFilter || (() => false)
   }
 
   getHandlerForRef (rawRef) {
@@ -68,6 +69,11 @@ class Membrane {
       originGraph = inGraph
       // record origin
       this.rawToOrigin.set(inRef, inGraph)
+    }
+
+    // allow graphs to pass through some values unwrapped
+    if (outGraph.passthroughFilter(rawRef)) {
+      return rawRef
     }
 
     //
