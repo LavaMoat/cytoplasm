@@ -43,6 +43,11 @@ class Membrane {
   // if rawObj is not part of inGraph, should we explode?
   bridge (inRef, inGraph, outGraph) {
 
+    // if we've been asked to bridge a ref between the same to spaces, its a no-op
+    if (inGraph === outGraph) {
+      return inRef
+    }
+
     //
     // skip if should be passed directly (danger)
     //
@@ -68,6 +73,7 @@ class Membrane {
       rawRef = inRef
       originGraph = inGraph
       // record origin
+      // console.log(`assigning to "${inGraph.label}"`, this.debugLabelForValue(rawRef))
       this.rawToOrigin.set(inRef, inGraph)
     }
 
@@ -240,7 +246,7 @@ class Membrane {
       // && rawRef !== Array.prototype
       valueLabel = `[${rawRef.map(value => {
         if (Array.isArray(value)) return `<array>(${originLabel})`
-        return this.debug(value)
+        return this.debugLabelForValue(value)
       }).join(', ')}]`
       // return '<array>'
     } else if (type === 'function') {
