@@ -300,13 +300,8 @@ function respectProxyInvariants (rawProxyHandler) {
     // ensure propDesc matches proxy target's non-configurable property
     const propDesc = handlerWithDefaults.getOwnPropertyDescriptor(fakeTarget, key)
     if (propDesc && !propDesc.configurable) {
-      const proxyTargetPropDesc = Reflect.getOwnPropertyDescriptor(fakeTarget, key)
-      const proxyTargetPropIsConfigurable = (!proxyTargetPropDesc || proxyTargetPropDesc.configurable)
-      // console.warn('@@ getOwnPropertyDescriptor - non configurable', String(key), !!proxyTargetPropIsConfigurable)
-      // if proxy target is configurable (and real target is not) update the proxy target to ensure the invariant holds
-      if (proxyTargetPropIsConfigurable) {
-        Reflect.defineProperty(fakeTarget, key, propDesc)
-      }
+      // if real target prop is non-configurable, update the fake target to ensure the invariant holds
+      Reflect.defineProperty(fakeTarget, key, propDesc)
     }
     return propDesc
   }

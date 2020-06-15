@@ -71,6 +71,23 @@ function runTests (test, { Membrane }) {
     })
   })
 
+  // Uncaught TypeError: 'getOwnPropertyDescriptor' on proxy: trap reported non-configurable and writable for property 'prototype' which is non-configurable, non-writable in the proxy target
+  // this ensures we can membrane wrap a class (non-writ non-config prop "prototype")
+  test('class - can shadow dot prototype', (t) => {
+    const membrane = new Membrane()
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    const graphB = membrane.makeMembraneSpace({ label: 'b' })
+
+    const klassA = class Klass {}
+    const klassB = membrane.bridge(klassA, graphA, graphB)
+
+    t.doesNotThrow(() => {
+      Reflect.getOwnPropertyDescriptor(klassB, 'prototype')
+    })
+
+    t.end()
+  })
+
   test('class - instance origin space with class chain', (t) => {
     const membrane = new Membrane()
     const graphA = membrane.makeMembraneSpace({ label: 'a' })
