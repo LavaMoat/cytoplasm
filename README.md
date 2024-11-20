@@ -1,12 +1,12 @@
 # 🦠 cytoplasm 🔬
 
+**warning: largely an educational exercise. too slow to be practical, has not been audited, here be dragons, etc**
+
 a javascript [membrane](https://tvcutsem.github.io/membranes) implementation.
 This implementation is intended to provide *secure* isolation between any number of membrane spaces.
 This implementation intends to support all types of objects including functions, classes, etc.
 By default, all membrane spaces have a "transparent distortion", meaning all operations are forwarded to the original graph.
 In order for this membrane to be useful you will need to provide a distortion implementation.
-
-**status: has not been audited, here be dragons, etc**
 
 ### features
 
