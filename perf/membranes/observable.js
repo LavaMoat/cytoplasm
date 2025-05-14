@@ -1,4 +1,4 @@
-import ObservableMembrane from 'observable-membrane/dist/umd/observable-membrane.min.js'
+import { ObservableMembrane } from 'observable-membrane'
 
 export default () => {
   const membrane = new ObservableMembrane()

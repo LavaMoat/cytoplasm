@@ -14,7 +14,7 @@
     "depcheck": "^0.9.2",
     "esbuild": "^0.20.2",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
-    "observable-membrane": "^0.26.1",
+    "observable-membrane": "^2.0.0",
     "ses": "^0.7.3",
     "standard": "^14.3.3",
     "tap-spec": "^5.0.0",
