@@ -3,7 +3,7 @@ import getTest from './get.js'
 import deepGetTest from './deepGet.js'
 import setTest from './set.js'
 
-import pojo from './membranes/pojo.js'
+import bare from './membranes/bare.js'
 import emptyProxy from './membranes/emptyProxy.js'
 import reflectProxy from './membranes/reflectProxy.js'
 import recursiveProxy from './membranes/recursiveProxy.js'
@@ -15,7 +15,7 @@ import cytoplasmTransparent from './membranes/cytoplasmTransparent.js'
 
 
 const makeDefaultMembranes = () => ({
-  'non-membrane:pojo': pojo(),
+  'non-membrane:bare': bare(),
   'non-membrane:emptyProxy': emptyProxy(),
   'non-membrane:reflectProxy': reflectProxy(),
   'non-membrane:recursiveProxy': recursiveProxy(),
