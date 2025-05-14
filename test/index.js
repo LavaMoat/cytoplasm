@@ -1,12 +1,11 @@
-'use strict'
-
-const { inherits } = require('util')
-const crypto = require('crypto')
-const test = require('tape')
-const srcExports = require('../src/index')
-const distExports = require('../dist/index')
-const createReadOnlyDistortion = require('../src/distortions/readOnly')
-const createAlwaysThrowDistortion = require('../src/distortions/alwaysThrow')
+import { inherits } from 'util'
+import crypto from 'crypto'
+import test from 'tape'
+import { Buffer } from 'buffer'
+import * as srcExports from '../src/index.js'
+import * as distExports from '../dist/index.js'
+import createReadOnlyDistortion from '../src/distortions/readOnly.js'
+import createAlwaysThrowDistortion from '../src/distortions/alwaysThrow.js'
 
 runTests(testWithLabelPrefix('src'), srcExports)
 runTests(testWithLabelPrefix('dist'), distExports)
@@ -598,7 +597,6 @@ function runTests (test, { Membrane }) {
   })
 
   test('kowtow - propertyDescriptors - getOwnPropertyDescriptors', (t) => {
-    const { Buffer } = require('buffer')
     const Copy = createCopyFactory()(Buffer)
 
     const origDecs = Object.getOwnPropertyDescriptors(Buffer)
@@ -753,7 +751,6 @@ function runTests (test, { Membrane }) {
   })
 
   test('kowtow - traps - ownKeys', (t) => {
-    const { Buffer } = require('buffer')
     const Copy = createCopyFactory()(Buffer)
 
     const origKeys = Reflect.ownKeys(Buffer)
@@ -765,7 +762,6 @@ function runTests (test, { Membrane }) {
   })
 
   test('kowtow - traps - for in', (t) => {
-    const { Buffer } = require('buffer')
     const Copy = createCopyFactory()(Buffer)
 
     for (const key in Copy) {

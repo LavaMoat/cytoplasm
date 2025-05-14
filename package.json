@@ -2,21 +2,18 @@
   "scripts": {
     "test": "node test/index.js",
     "performance": "node perf/index.js",
-    "lib": "babel --plugins @babel/plugin-transform-modules-commonjs node_modules/ses/src/{assert,*intrinsic*}.js --out-dir lib/",
-    "dist": "browserify --no-detect-globals --standalone 'Membrane' src/index.js > dist/index.js",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "esbuild src/index.js --bundle --format=esm --outfile=dist/index.js --external:../lib/*",
+    "build:cjs": "esbuild src/index.js --bundle --format=cjs --outfile=dist/index.cjs --external:../lib/* --target=node14 --banner:js='\"use strict\";'",
     "lint": "npm run lint:standard && npm run lint:deps",
     "lint:standard": "standard src/**/*.js",
     "lint:fix": "standard src/**/*.js --fix",
-    "lint:deps": "depcheck --ignore-dirs=lib,dist --ignores='ses,babelify,@babel/plugin-transform-modules-commonjs'"
+    "lint:deps": "depcheck --ignore-dirs=dist --ignores='ses'"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.7",
-    "@babel/plugin-transform-modules-commonjs": "^7.8.3",
-    "babelify": "^10.0.0",
     "benchmark": "^2.1.4",
-    "browserify": "^16.5.0",
     "depcheck": "^0.9.2",
+    "esbuild": "^0.20.2",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
     "observable-membrane": "^0.26.1",
     "ses": "^0.7.3",
@@ -26,8 +23,15 @@
   },
   "name": "cytoplasm",
   "version": "3.3.1",
-  "main": "src/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "type": "module",
+  "exports": {
+    "import": "./src/index.js",
+    "require": "./dist/index.cjs"
+  },
   "repository": "git@github.com:kumavis/cytoplasm.git",
   "author": "kumavis <aaron@kumavis.me>",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

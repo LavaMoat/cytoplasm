@@ -1,12 +1,10 @@
 // theres some things we may need to enforce differently when in and out of strict mode
 // e.g. fn.arguments
-'use strict'
-
-const { getIntrinsics } = require('./getIntrinsics')
+import { getIntrinsics } from './getIntrinsics.js'
 
 const { isArray } = Array
 
-class MembraneSpace {
+export class MembraneSpace {
   constructor ({ label, createHandler, dangerouslyAlwaysUnwrap, passthroughFilter }) {
     this.alwaysUnwrap = Boolean(dangerouslyAlwaysUnwrap)
     this.rawToBridged = new WeakMap()
@@ -28,7 +26,7 @@ class MembraneSpace {
   }
 }
 
-class Membrane {
+export class Membrane {
   constructor ({ debugMode, primordials } = {}) {
     this.debugMode = debugMode
     this.primordials = primordials || Object.values(getIntrinsics())
@@ -258,8 +256,6 @@ class Membrane {
   }
 
 }
-
-module.exports = { Membrane, MembraneSpace }
 
 //
 // FlexibleProxy

@@ -1,7 +1,5 @@
-module.exports = createRevokableDistortion
-
 // still allows functions that cause side effects
-function createRevokableDistortion () {
+export default function createRevokableDistortion () {
   let revoked = false
   const api = {
     revoke: () => {

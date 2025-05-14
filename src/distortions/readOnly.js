@@ -1,7 +1,5 @@
-module.exports = createDistortion
-
 // still allows functions that cause side effects
-function createDistortion ({ setHandlerForRef }) {
+export default function createDistortion ({ setHandlerForRef }) {
   return {
     // prevent direct mutability
     setPrototypeOf: () => false,

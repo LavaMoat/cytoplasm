@@ -1,7 +1,5 @@
-"use strict"
-
-const { Membrane } = require('../src/index')
-const createHandler = require('../src/distortions/readOnly')
+import { Membrane } from '../src/index.js'
+import createHandler from '../src/distortions/readOnly.js'
 
 const membrane = new Membrane()
 const graphA = membrane.makeMembraneSpace({ label: 'a', createHandler })

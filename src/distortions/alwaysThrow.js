@@ -1,7 +1,6 @@
-module.exports = createAlwaysThrowDistortion
 
 // still allows functions that cause side effects
-function createAlwaysThrowDistortion () {
+export default function createAlwaysThrowDistortion () {
   const handler = {
     getPrototypeOf: (...args) => {
       throw new Error('Cytoplasm AlwaysThrowDistorion exploded as planned')
