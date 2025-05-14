@@ -105,6 +105,8 @@ cytoplasm  | ✓ | ✓ | x
 
 `yarn run performance`
 
+I have noticed significant performance differences between node v20 and node v24.
+
 Performance comparison between `cytoplasm`, other memebranes, and non-membranes:
 
 ```
