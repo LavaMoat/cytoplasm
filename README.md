@@ -86,7 +86,7 @@ Object
 "security focused" means that user code can't unwrap the membrane (usually implies a WeakMap)
 
 repo  | n-sides  | security focused | audit
----|---|---
+---|---|---|---
 cytoplasm  | ✓ | ✓ | x
 [es-membrane][es-membrane]  | ✓ | ? | x
 [@caridy/sjs][@caridy/sjs]  | x | ? | x
