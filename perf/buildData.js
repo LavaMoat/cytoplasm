@@ -1,4 +1,3 @@
-
 const adjectives = [
   'pretty',
   'large',
@@ -57,13 +56,6 @@ const nouns = [
 
 let nextId = 1
 
-module.exports = {
-  createDeepData,
-  createFlatData,
-  doManyTimes,
-  randomPhrase
-}
-
 function createDeepData (count) {
   return doManyTimes(count, () => {
     const obj = createObj()
@@ -100,4 +92,12 @@ function randomFrom (array) {
 
 function randomPhrase () {
   return `${randomFrom(adjectives)} ${randomFrom(colors)} ${randomFrom(nouns)}`
+}
+
+export {
+  createDeepData,
+  createObj,
+  createFlatData,
+  doManyTimes,
+  randomPhrase
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 const { isArray } = Array
-const { getPrototypeOf, isFrozen, prototype: ObjectPrototype } = Object
+const { getPrototypeOf, prototype: ObjectPrototype } = Object
 
 const handler = {
   get (target, prop, receiver) {
@@ -19,7 +19,7 @@ const handler = {
 const rawToProxy = new WeakMap()
 const proxyToRaw = new WeakMap()
 
-module.exports = () => ({
+export default () => ({
   wrap,
   unwrap,
 })

@@ -1,19 +1,12 @@
-const { createDeepData, doManyTimes } = require('./buildData')
+import { createDeepData } from './buildData.js'
 
-module.exports = () => ({
+export default (makeDefaultMembranes) => ({
   label: 'deep-get',
   membranes: {
-    pojo: require('./membranes/pojo')(),
-    // simpleProxy: require('./membranes/simpleProxy')(),
-    recursiveProxy: require('./membranes/recursiveProxy')(),
-    simpleMembrane: require('./membranes/simpleMembrane')(),
-    fastSymbol: require('./membranes/fastSymbol')(),
-    fastWeakMap: require('./membranes/fastWeakMap')(),
-    observable: require('./membranes/observable')(),
-    cytoplasmTransparent: require('./membranes/cytoplasmTransparent')()
+    ...makeDefaultMembranes(),
   },
   setup (membrane, count) {
-    return doManyTimes(count, () => createDeepData(10000)).map(membrane.wrap)
+    return createDeepData(count).map(membrane.wrap)
   },
   run (runData) {
     let sum = ''

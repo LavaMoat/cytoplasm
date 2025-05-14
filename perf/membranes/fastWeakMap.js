@@ -1,6 +1,6 @@
-const WeakMapMembrane = require('fast-membrane/dist/umd/weakmap/fast-membrane.min.js')
+import WeakMapMembrane from 'fast-membrane/dist/umd/weakmap/fast-membrane.min.js'
 
-module.exports = () => {
+export default () => {
   const membrane = new WeakMapMembrane()
   return {
     wrap: (obj) => membrane.getProxy(obj)

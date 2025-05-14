@@ -1,69 +1,68 @@
-const { Suite } = require('benchmark')
+import { Bench } from 'tinybench'
+import getTest from './get.js'
+import deepGetTest from './deepGet.js'
+import setTest from './set.js'
+
+import pojo from './membranes/pojo.js'
+import emptyProxy from './membranes/emptyProxy.js'
+import reflectProxy from './membranes/reflectProxy.js'
+import recursiveProxy from './membranes/recursiveProxy.js'
+import simpleMembrane from './membranes/simpleMembrane.js'
+import fastSymbol from './membranes/fastSymbol.js'
+import fastWeakMap from './membranes/fastWeakMap.js'
+import observable from './membranes/observable.js'
+import cytoplasmTransparent from './membranes/cytoplasmTransparent.js'
+
+
+const makeDefaultMembranes = () => ({
+  'non-membrane:pojo': pojo(),
+  'non-membrane:emptyProxy': emptyProxy(),
+  'non-membrane:reflectProxy': reflectProxy(),
+  'non-membrane:recursiveProxy': recursiveProxy(),
+  'test:simpleMembrane': simpleMembrane(),
+  'fast-membrane:symbol': fastSymbol(),
+  'fast-membrane:weakmap': fastWeakMap(),
+  'observable-membrane': observable(),
+  'cytoplasm:transparent': cytoplasmTransparent()
+})
 
 main()
 
 async function main () {
-  runAll([
-    require('./get')(),
-    require('./deepGet')(),
-    require('./set')()
+  await runAll([
+    getTest(makeDefaultMembranes),
+    deepGetTest(makeDefaultMembranes),
+    setTest(makeDefaultMembranes),
   ])
 }
 
 async function runSuite (suiteParams) {
-  let resolve; let reject; const promise = new Promise((res, rej) => { resolve = res; reject = rej })
-
-  Object.assign(global, {
-    suiteParams
-  }, suiteParams.context)
-
-  const suite = new Suite(suiteParams.label)
-  Object.entries(suiteParams.membranes).map(([name, membrane]) => {
-    suite.add(name, () => {
-      // this is run in a special eval context within the scope of `setup`
-      suiteParams.run(seriesData.pop())
-    }, {
-      // this is run in a special eval context
-      setup: Function(`
-        const membrane = suiteParams.membranes['${name}']
-        const seriesData = suiteParams.setup(membrane, this.count)
-      `)
-    })
+  const bench = new Bench({
+    time: 1000,
+    iterations: 100,
+    warmupTime: 100,
   })
 
-  const suiteResults = []
+  console.log(`\n== ${suiteParams.label} ==`)
 
-  suite
-    .on('start', function () {
-      console.log(`== ${this.name} ==`)
+  for (const [name, membrane] of Object.entries(suiteParams.membranes)) {
+    bench.add(name, async () => {
+      const data = suiteParams.setup(membrane, 100)
+      return suiteParams.run(data)
     })
-    .on('cycle', function (event) {
-      const benchmark = event.target
-      suiteResults.push({
-        name: benchmark.name,
-        hz: benchmark.hz,
-      })
-      console.log(this.name, '-', String(benchmark))
-      // console.log(`${benchmark.name}: ${benchmark.hz.toFixed(2)}`)
-    })
-    .on('complete', function () {
-      suiteResults.sort((a,b) => b.hz - a.hz)
-      console.table(suiteResults)
-      resolve({
-        name: this.name,
-        results: suiteResults,
-      })
-    })
-    .on('error', function (event) {
-      const { error } = event.target
-      reject(error)
-    })
-    .run({ async: true })
+  }
 
-  return promise
+  await bench.run()
+  console.table(bench.table())
+  return {
+    name: suiteParams.label,
+    results: bench.results.map((r, index) => ({
+      name: Object.keys(suiteParams.membranes)[index],
+      result: r,
+    }))
+  }
 }
 
-// runAll in series (important)
 async function runAll (suites) {
   const allResults = []
   for (const suite of suites) {
@@ -73,12 +72,13 @@ async function runAll (suites) {
 }
 
 function displayAllResults (allResults) {
-  const structured = {}
+  const resultSummary = {}
   allResults.forEach(({ name: suiteName, results: suiteResults }) => {
-    suiteResults.forEach(({ name: stratName, hz }) => {
-      const strat = structured[stratName] = structured[stratName] || {}
-      strat[suiteName] = hz
+    suiteResults.forEach(({ name: membraneName, result }) => {
+      const membraneResult = resultSummary[membraneName] = resultSummary[membraneName] || {}
+      membraneResult[suiteName] = Math.round(result.hz)
     })
   })
-  console.table(structured)
+  console.log('\n== Summary ==')
+  console.table(resultSummary)
 }

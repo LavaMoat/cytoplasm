@@ -1,6 +1,6 @@
-const { Membrane } = require('../../src/index')
+import { Membrane } from '../../src/index.js'
 
-module.exports = () => {
+export default () => {
   const membrane = new Membrane()
   const cytoplasmSpaceA = membrane.makeMembraneSpace({ label: 'a' })
   const cytoplasmSpaceB = membrane.makeMembraneSpace({ label: 'b' })

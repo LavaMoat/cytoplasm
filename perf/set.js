@@ -1,31 +1,20 @@
-const { randomPhrase, doManyTimes } = require('./buildData')
+import { createFlatData } from './buildData.js'
 
-module.exports = () => ({
+export default (makeDefaultMembranes) => ({
   label: 'set',
   membranes: {
-    pojo: require('./membranes/pojo')(),
-    simpleProxy: require('./membranes/simpleProxy')(),
-    recursiveProxy: require('./membranes/recursiveProxy')(),
-    simpleMembrane: require('./membranes/simpleMembrane')(),
-    fastSymbol: require('./membranes/fastSymbol')(),
-    fastWeakMap: require('./membranes/fastWeakMap')(),
-    observable: require('./membranes/observable')(),
-    cytoplasmTransparent: require('./membranes/cytoplasmTransparent')()
+    ...makeDefaultMembranes(),
   },
   setup (membrane, count) {
-    return doManyTimes(count, () => new Array(10000)).map(membrane.wrap)
+    return createFlatData(count).map(membrane.wrap)
   },
   run (runData) {
     for (let i = 0; i < 10000; i++) {
       runData[i] = {}
       const obj = runData[i]
-
       obj.id = i
-      obj.label = randomPhrase()
-      obj.className = randomPhrase()
+      obj.label = `new label ${i}`
+      obj.className = `new className ${i}`
     }
   },
-  context: {
-    randomPhrase
-  }
 })

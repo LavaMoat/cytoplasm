@@ -1,5 +1,3 @@
-'use strict'
-
 // this wraps values in Proxies, but does not handle circular refs
 
 const { isArray } = Array
@@ -21,7 +19,7 @@ const handler = {
   },
 }
 
-module.exports = () => ({
+export default () => ({
   wrap
 })
 
