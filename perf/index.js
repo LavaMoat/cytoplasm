@@ -23,7 +23,7 @@ const makeDefaultMembranes = () => ({
   'fast-membrane:symbol': fastSymbol(),
   'fast-membrane:weakmap': fastWeakMap(),
   'observable-membrane': observable(),
-  'cytoplasm:transparent': cytoplasmTransparent()
+  'cytoplasm:transparent': cytoplasmTransparent(),
 })
 
 main()

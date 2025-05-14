@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node test/index.js",
+    "test": "node test/index.js | tap-spec",
     "performance": "node perf/index.js",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "esbuild src/index.js --bundle --format=esm --outfile=dist/index.js --external:../lib/*",
@@ -8,7 +8,7 @@
     "lint": "npm run lint:standard && npm run lint:deps",
     "lint:standard": "standard src/**/*.js",
     "lint:fix": "standard src/**/*.js --fix",
-    "lint:deps": "depcheck --ignore-dirs=dist --ignores='ses'"
+    "lint:deps": "depcheck --ignore-dirs=dist --ignores='ses,tap-spec'"
   },
   "devDependencies": {
     "depcheck": "^0.9.2",
