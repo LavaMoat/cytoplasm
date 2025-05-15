@@ -1,4 +1,3 @@
-
 // still allows functions that cause side effects
 export default function createAlwaysThrowDistortion () {
   const handler = {

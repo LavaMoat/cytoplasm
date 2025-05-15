@@ -990,6 +990,59 @@ function runTests (test, { Membrane }) {
     t.end()
   })
 
+  test('guybedford modified - set on this-value property', (t) => {
+    const membrane = new Membrane()
+
+    const graphA = membrane.makeMembraneSpace({ label: 'a' })
+    // graphB is read-only in A
+    const graphB = membrane.makeMembraneSpace({ label: 'b', createHandler: createReadOnlyDistortion })
+
+    const objA = {
+      set: function () {
+        this.isHacked = true;
+      }
+    };
+    
+    const privateStateB = {
+      setter: undefined,
+      isHacked: false,
+    };
+    const objB = {
+      setSetter (setter) {
+        privateStateB.setter = setter;
+      },
+      runSetter () {
+        privateStateB.setter();
+      }
+    }
+
+    
+    const objAInB = membrane.bridge(objA, graphA, graphB)
+    const objBInA = membrane.bridge(objB, graphB, graphA)
+
+    // Happening in B
+    let bError
+    try {
+      objB.setSetter(objAInB.set);
+      objB.runSetter();
+    } catch (_error) {
+      bError = _error
+    }
+    t.equal(privateStateB.isHacked, false, 'function from A invoked directly via B should NOT be able to write to object from B')
+    
+    // Happening in A
+    let aError
+    try {
+      objBInA.setSetter(objA.setSetter);
+      objBInA.runSetter();
+    } catch (_error) {
+      aError = _error
+    }
+    t.equal(privateStateB.isHacked, false, 'function from A invoked in B via A should NOT be able to write to object from B')
+
+    t.end()
+  })
+
   test('FlexibleProxy - preventExtensions invariant', (t) => {
     const membrane = new Membrane()
 
