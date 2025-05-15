@@ -18,12 +18,12 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/index.js
-var src_exports = {};
-__export(src_exports, {
+var index_exports = {};
+__export(index_exports, {
   Membrane: () => Membrane,
   MembraneSpace: () => MembraneSpace
 });
-module.exports = __toCommonJS(src_exports);
+module.exports = __toCommonJS(index_exports);
 
 // src/getIntrinsics.js
 var import_intrinsics = require("../lib/intrinsics.cjs");
@@ -207,12 +207,10 @@ var Membrane = class {
     }
     let valueLabel;
     const type = typeof rawRef;
-    if (type === "string")
-      return `"${rawRef}"`;
+    if (type === "string") return `"${rawRef}"`;
     if (type === "object" && Array.isArray(rawRef)) {
       valueLabel = `[${rawRef.map((value) => {
-        if (Array.isArray(value))
-          return `<array>(${originLabel})`;
+        if (Array.isArray(value)) return `<array>(${originLabel})`;
         return this.debugLabelForValue(value);
       }).join(", ")}]`;
     } else if (type === "function") {

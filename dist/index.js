@@ -180,12 +180,10 @@ var Membrane = class {
     }
     let valueLabel;
     const type = typeof rawRef;
-    if (type === "string")
-      return `"${rawRef}"`;
+    if (type === "string") return `"${rawRef}"`;
     if (type === "object" && Array.isArray(rawRef)) {
       valueLabel = `[${rawRef.map((value) => {
-        if (Array.isArray(value))
-          return `<array>(${originLabel})`;
+        if (Array.isArray(value)) return `<array>(${originLabel})`;
         return this.debugLabelForValue(value);
       }).join(", ")}]`;
     } else if (type === "function") {

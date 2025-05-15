@@ -1,4 +1,16 @@
 {
+  "name": "cytoplasm",
+  "version": "3.3.1",
+  "author": "kumavis <aaron@kumavis.me>",
+  "repository": "git@github.com:kumavis/cytoplasm.git",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./src/index.js",
+  "exports": {
+    "import": "./src/index.js",
+    "require": "./dist/index.cjs"
+  },
   "scripts": {
     "test": "node test/index.js | tap-spec",
     "performance": "node perf/index.js",
@@ -8,30 +20,17 @@
     "lint": "npm run lint:standard && npm run lint:deps",
     "lint:standard": "standard src/**/*.js",
     "lint:fix": "standard src/**/*.js --fix",
-    "lint:deps": "depcheck --ignore-dirs=dist --ignores='ses,tap-spec'"
+    "lint:deps": "depcheck --ignore-dirs=dist --ignores='tap-spec'"
   },
   "devDependencies": {
-    "depcheck": "^0.9.2",
-    "esbuild": "^0.20.2",
+    "depcheck": "^1.4.7",
+    "esbuild": "^0.25.4",
     "fast-membrane": "pmdartus/fast-membrane#59c8a131249919f0f814d17767881a18c784ed87",
     "observable-membrane": "^2.0.0",
-    "ses": "^0.7.3",
-    "standard": "^14.3.3",
+    "standard": "^17.1.2",
     "tap-spec": "^5.0.0",
-    "tape": "^4.11.0",
+    "tape": "^5.9.0",
     "tinybench": "^2.5.1"
   },
-  "name": "cytoplasm",
-  "version": "3.3.1",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "type": "module",
-  "exports": {
-    "import": "./src/index.js",
-    "require": "./dist/index.cjs"
-  },
-  "repository": "git@github.com:kumavis/cytoplasm.git",
-  "author": "kumavis <aaron@kumavis.me>",
-  "license": "MIT",
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
